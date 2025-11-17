@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>USC Gym Dashboard · Village & Lyon</title>
+  <title>USC Gym Live</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
@@ -53,7 +53,7 @@
       justify-content: center;
       box-shadow:
         0 0 0 1px rgba(15,23,42,0.9),
-        0 14px 32px rgba(15,23,42,0.95);
+        0 14px 30px rgba(15,23,42,0.9);
     }
     .nav-logo-dot {
       width: 9px;
@@ -93,7 +93,7 @@
       font-size: 11px;
       border: 1px solid rgba(148,163,184,0.5);
       color: #9ca3af;
-      background: rgba(15,23,42,0.85);
+      background: rgba(15,23,42,0.9);
       backdrop-filter: blur(12px);
     }
     .pill-dot {
@@ -131,7 +131,7 @@
     .layout-bottom {
       display: grid;
       grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
-      gap: 18px;
+      gap: 20px;
     }
     @media (max-width: 900px) {
       body {
@@ -156,14 +156,12 @@
     .card {
       position: relative;
       background:
-        radial-gradient(circle at 0 0, rgba(59,130,246,0.25), transparent 60%),
+        radial-gradient(circle at 0 0, rgba(59,130,246,0.22), transparent 60%),
         radial-gradient(circle at 100% 100%, rgba(15,23,42,0.9), #020617);
       border-radius: 20px;
       padding: 16px 16px 14px;
       border: 1px solid rgba(55,65,81,0.9);
-      box-shadow:
-        0 18px 60px rgba(0,0,0,0.9),
-        0 0 0 1px rgba(15,23,42,0.9);
+      box-shadow: 0 18px 40px rgba(0,0,0,0.7);
       backdrop-filter: blur(18px);
       overflow: hidden;
     }
@@ -172,9 +170,9 @@
       position: absolute;
       inset: -40%;
       background:
-        radial-gradient(circle at 0 0, rgba(96,165,250,0.3), transparent 55%),
-        radial-gradient(circle at 100% 0, rgba(52,211,153,0.2), transparent 60%);
-      opacity: 0.5;
+        radial-gradient(circle at 0 0, rgba(96,165,250,0.2), transparent 55%),
+        radial-gradient(circle at 100% 0, rgba(52,211,153,0.15), transparent 60%);
+      opacity: 0.45;
       pointer-events: none;
       mix-blend-mode: soft-light;
     }
@@ -208,7 +206,7 @@
       margin-right: 4px;
     }
     select {
-      background: rgba(15,23,42,0.95);
+      background: rgba(15,23,42,0.98);
       color: #e5e7eb;
       border-radius: 999px;
       border: 1px solid #334155;
@@ -237,7 +235,7 @@
       border-radius: 999px;
       font-size: 11px;
       background: rgba(15,23,42,0.9);
-      border: 1px solid rgba(75,85,99,0.85);
+      border: 1px solid rgba(75,85,99,0.8);
       color: #e5e7eb;
     }
     .chip-arrow {
@@ -295,12 +293,12 @@
     }
     .mini-card {
       background:
-        radial-gradient(circle at 0 0, rgba(59,130,246,0.32), transparent 55%),
+        radial-gradient(circle at 0 0, rgba(59,130,246,0.25), transparent 55%),
         rgba(15,23,42,0.97);
       border-radius: 14px;
       padding: 8px 10px;
       border: 1px solid rgba(55,65,81,0.9);
-      box-shadow: 0 10px 25px rgba(0,0,0,0.9);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.8);
     }
     .mini-header {
       display: flex;
@@ -374,12 +372,12 @@
         <div class="nav-logo-dot"></div>
       </div>
       <div class="nav-title-group">
-        <h1>USC Gym Dashboard</h1>
-        <p class="subtitle">Village Fitness, Lyon Center, and HSC live activity and trends.</p>
+        <h1>USC Gym Live</h1>
+        <p class="subtitle">Quick view of how busy Village, Lyon, and HSC are right now.</p>
       </div>
     </div>
     <div class="nav-right">
-      <div class="nav-tag">USC Rec Sports · Internal tool</div>
+      <div class="nav-tag">USC Rec Sports · Internal</div>
       <div class="pill-badge" id="liveStatusGlobal">
         <span class="pill-dot" id="liveStatusDot"></span>
         <span id="liveStatusText">Live · just updated</span>
@@ -393,26 +391,26 @@
         <div class="card-inner">
           <div class="card-header">
             <div>
-              <div class="card-title">Gym busy score</div>
-              <div class="muted">Based on current occupancy and recent patterns.</div>
+              <div class="card-title">Today vs usual</div>
+              <div class="muted">How busy this room is today compared to a normal day.</div>
             </div>
             <div>
-              <label for="areaSelect">Area</label>
+              <label for="areaSelect">Room</label>
               <select id="areaSelect">
                 <!-- value = API name, label = friendly name -->
-                <option value="UV Cardio Landing">Village Cardio Area (Landing)</option>
-                <option value="UV Cardio Room">Village Cardio Room</option>
-                <option value="UV Strength Landing">Village Strength Area (Landing)</option>
-                <option value="UV Strength Room">Village Strength Room</option>
-                <option value="UV Group Ex 1">Village Group Studio 1</option>
-                <option value="UV Group Ex 2">Village Group Studio 2</option>
-                <option value="UV Queenax">Village Functional Training</option>
-                <option value="LRC Weight Room">Lyon Weight Room</option>
-                <option value="LRC Functional Training Room">Lyon Functional Training</option>
-                <option value="LRC Free Weights & Stretching">Lyon Free Weights & Stretch</option>
-                <option value="HSC Cardio">HSC Cardio Area</option>
-                <option value="HSC Strength Machines">HSC Strength Machines</option>
-                <option value="HSC Weight Room">HSC Weight Room</option>
+                <option value="UV Cardio Landing" selected>Village cardio floor</option>
+                <option value="UV Cardio Room">Village cardio room</option>
+                <option value="UV Strength Landing">Village strength floor</option>
+                <option value="UV Strength Room">Village strength room</option>
+                <option value="UV Group Ex 1">Village group studio 1</option>
+                <option value="UV Group Ex 2">Village group studio 2</option>
+                <option value="UV Queenax">Village functional area</option>
+                <option value="LRC Weight Room">Lyon weight room</option>
+                <option value="LRC Functional Training Room">Lyon functional area</option>
+                <option value="LRC Free Weights & Stretching">Lyon free weights</option>
+                <option value="HSC Cardio">HSC cardio area</option>
+                <option value="HSC Strength Machines">HSC machines</option>
+                <option value="HSC Weight Room">HSC weight room</option>
               </select>
             </div>
           </div>
@@ -430,7 +428,7 @@
 
           <canvas id="trendChart" height="120"></canvas>
           <div class="muted-xs" id="trendNotes" style="margin-top:6px;">
-            Today vs typical for the selected area.
+            Blue = today. Dotted = average of the last few days.
           </div>
         </div>
       </div>
@@ -438,7 +436,7 @@
       <div class="card">
         <div class="card-inner">
           <div class="card-header">
-            <div class="card-title" id="liveAreaTitle">Village Cardio Area (Landing)</div>
+            <div class="card-title" id="liveAreaTitle">Village cardio floor</div>
             <span id="liveStatusPill" class="status-pill status-unknown">Unknown</span>
           </div>
           <div class="live-number" id="liveNumber">-- / --</div>
@@ -451,7 +449,7 @@
 
           <div class="mini-cards" id="miniCards"></div>
           <div class="muted-xs" style="margin-top:6px;">
-            These update every minute based on live counts.
+            These update every minute from the live counts.
           </div>
         </div>
       </div>
@@ -462,11 +460,11 @@
         <div class="card-inner">
           <div class="card-header">
             <div>
-              <div class="card-title">Weekly heatmap</div>
-              <div class="muted">Average percent full by day and hour (recent days).</div>
+              <div class="card-title">Weekly pattern</div>
+              <div class="muted">Average fullness by day and hour.</div>
             </div>
           </div>
-          <div class="muted-xs" style="margin-bottom:4px;">Darker = busier, for the selected area.</div>
+          <div class="muted-xs" style="margin-bottom:4px;">Darker = usually busier for this room.</div>
           <div id="heatmapContainer"></div>
         </div>
       </div>
@@ -475,29 +473,29 @@
         <div class="card-inner">
           <div class="card-header">
             <div>
-              <div class="card-title">Insights</div>
-              <div class="muted">Based on typical patterns from your logs.</div>
+              <div class="card-title">Highlights</div>
+              <div class="muted">Typical pattern based on your logs.</div>
             </div>
           </div>
 
           <div class="insight-row">
-            <span class="insight-label">Busiest hour (typical)</span>
+            <span class="insight-label">Busiest hour</span>
             <span class="insight-value" id="insightPeakHour">--</span>
           </div>
           <div class="insight-row">
-            <span class="insight-label">Quietest hour (typical)</span>
+            <span class="insight-label">Quietest hour</span>
             <span class="insight-value" id="insightQuietHour">--</span>
           </div>
           <div class="insight-row">
-            <span class="insight-label">Typical peak load</span>
+            <span class="insight-label">Typical peak</span>
             <span class="insight-value" id="insightPeakPercent">--</span>
           </div>
           <div class="insight-row">
-            <span class="insight-label">Most recent reading</span>
+            <span class="insight-label">Right now</span>
             <span class="insight-value" id="insightLastReading">--</span>
           </div>
           <div class="muted-xs" style="margin-top:8px;">
-            Insights get more accurate as you log more days of data.
+            The more days you log, the smarter this gets.
           </div>
         </div>
       </div>
@@ -546,7 +544,7 @@
             tension: 0.3
           },
           {
-            label: "Typical",
+            label: "Usual",
             data: [],
             borderWidth: 2,
             borderDash: [6, 4],
@@ -571,7 +569,7 @@
               maxRotation: 0,
               autoSkip: true
             },
-            grid: { color: "rgba(148,163,184,0.18)" }
+            grid: { color: "rgba(148,163,184,0.12)" }
           },
           y: {
             min: 0,
@@ -580,7 +578,7 @@
               color: "#9ca3af",
               callback: v => v + "%"
             },
-            grid: { color: "rgba(148,163,184,0.18)" }
+            grid: { color: "rgba(148,163,184,0.12)" }
           }
         }
       }
@@ -592,9 +590,9 @@
 
     function pickStatus(percent) {
       if (percent == null) return { text: "Unknown", cls: "status-pill status-unknown" };
-      if (percent < 40) return { text: "Chill", cls: "status-pill status-chill" };
-      if (percent < 70) return { text: "Moderate", cls: "status-pill status-medium" };
-      return { text: "Packed", cls: "status-pill status-packed" };
+      if (percent < 40) return { text: "Pretty quiet", cls: "status-pill status-chill" };
+      if (percent < 70) return { text: "Normal busy", cls: "status-pill status-medium" };
+      return { text: "Crowded", cls: "status-pill status-packed" };
     }
 
     async function fetchHistory(apiName) {
@@ -627,7 +625,7 @@
       trendChart.update();
 
       trendNotes.textContent =
-        `Showing "${displayName}". Solid line is today; dotted line is the recent average for that hour.`;
+        `Room: "${displayName}". Blue = today. Dotted = average of the last few days.`;
 
       const latestToday = today.length ? today[today.length - 1].percent : null;
       const now = new Date();
@@ -658,9 +656,9 @@
       if (rawScore < 35) {
         busyScoreLabel.textContent = "Pretty quiet right now.";
       } else if (rawScore < 70) {
-        busyScoreLabel.textContent = "Moderately busy, usually manageable.";
+        busyScoreLabel.textContent = "Normal busy for this time.";
       } else {
-        busyScoreLabel.textContent = "Expect waits for equipment.";
+        busyScoreLabel.textContent = "Expect waits for racks and benches.";
       }
 
       if (typicalNow == null) {
@@ -674,13 +672,13 @@
 
       if (Math.abs(delta) < 5) {
         nowVsNormalArrow.textContent = "≈";
-        nowVsNormalText.textContent = "About as busy as usual for this time.";
+        nowVsNormalText.textContent = "About the same as a normal day.";
       } else if (delta > 0) {
         nowVsNormalArrow.textContent = "↑";
-        nowVsNormalText.textContent = `${absDelta}% busier than usual than typical right now.`;
+        nowVsNormalText.textContent = `${absDelta}% busier than usual right now.`;
       } else {
         nowVsNormalArrow.textContent = "↓";
-        nowVsNormalText.textContent = `${absDelta}% quieter than usual than typical right now.`;
+        nowVsNormalText.textContent = `${absDelta}% quieter than usual right now.`;
       }
     }
 
@@ -723,7 +721,7 @@
           const cell = document.createElement("div");
           cell.className = "heatmap-cell";
           if (v == null) {
-            cell.style.background = "rgba(15,23,42,0.9)";
+            cell.style.background = "rgba(15,23,42,0.95)";
           } else {
             const intensity = v / maxVal;
             const alpha = 0.18 + 0.75 * intensity;
@@ -765,7 +763,7 @@
 
       insightPeakHour.textContent = peakHour != null ? hourLabel(peakHour) : "--";
       insightQuietHour.textContent = minHour != null ? hourLabel(minHour) : "--";
-      insightPeakPercent.textContent = peak != null ? `${Math.round(peak)}% full at peak.` : "--";
+      insightPeakPercent.textContent = peak != null ? `${Math.round(peak)}% full at peak.` : "--`;
       insightLastReading.textContent = latestToday != null ? `${Math.round(latestToday)}% right now.` : "--";
     }
 
@@ -816,7 +814,7 @@
 
       if (!areaObj) {
         liveNumber.textContent = "-- / --";
-        livePercent.textContent = "Area not found in live data.";
+        livePercent.textContent = "Room not found in live data.";
         const s = pickStatus(null);
         liveStatusPill.textContent = s.text;
         liveStatusPill.className = s.cls;
@@ -842,10 +840,10 @@
       updateGlobalLiveStatus();
 
       const featuredAreas = [
-        { api: "UV Strength Room", label: "Village Strength Room" },
-        { api: "UV Cardio Room", label: "Village Cardio Room" },
-        { api: "LRC Weight Room", label: "Lyon Weight Room" },
-        { api: "HSC Weight Room", label: "HSC Weight Room" }
+        { api: "UV Strength Room", label: "Village strength room" },
+        { api: "UV Cardio Room", label: "Village cardio room" },
+        { api: "LRC Weight Room", label: "Lyon weight room" },
+        { api: "HSC Weight Room", label: "HSC weight room" }
       ];
 
       miniCards.innerHTML = "";
