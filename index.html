@@ -7,7 +7,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     :root {
-      color-scheme: dark;
+      color-scheme: light;
     }
     * {
       box-sizing: border-box;
@@ -15,11 +15,11 @@
     body {
       margin: 0;
       padding: 18px 22px 28px;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+      font-family: -apple-system, system-ui, BlinkMacSystemFont, "SF Pro Text",
+        "SF Pro Display", sans-serif;
       background:
-        radial-gradient(circle at 0% 0%, #0f172a 0, #020617 40%, #020617 100%),
-        radial-gradient(circle at 100% 100%, #0b1120 0, #000 70%, #000 100%);
-      color: #e5e7eb;
+        radial-gradient(circle at 0 0, #e5f0ff 0, #f5f7fb 45%, #f3f4f6 100%);
+      color: #111827;
       min-height: 100vh;
     }
 
@@ -32,7 +32,7 @@
       gap: 16px;
       margin-bottom: 16px;
       padding-bottom: 10px;
-      border-bottom: 1px solid rgba(31,41,55,0.9);
+      border-bottom: 1px solid rgba(209, 213, 219, 0.9);
     }
     .nav-left {
       display: flex;
@@ -42,25 +42,25 @@
     .nav-logo {
       width: 26px;
       height: 26px;
-      border-radius: 9px;
+      border-radius: 8px;
       background:
-        radial-gradient(circle at 25% 0%, #38bdf8 0, transparent 55%),
-        radial-gradient(circle at 80% 100%, #0ea5e9 0, transparent 50%),
-        #020617;
-      border: 1px solid rgba(148,163,184,0.65);
+        linear-gradient(135deg, #0a84ff, #4facff);
+      border: 0.5px solid rgba(15, 23, 42, 0.1);
       display: flex;
       align-items: center;
       justify-content: center;
       box-shadow:
-        0 0 0 1px rgba(15,23,42,0.9),
-        0 14px 30px rgba(15,23,42,0.9);
+        0 8px 18px rgba(15, 23, 42, 0.18),
+        0 0 0 1px rgba(255, 255, 255, 0.8);
     }
     .nav-logo-dot {
-      width: 9px;
-      height: 9px;
+      width: 10px;
+      height: 10px;
       border-radius: 999px;
-      background: #38bdf8;
-      box-shadow: 0 0 12px rgba(56,189,248,0.9);
+      background: white;
+      box-shadow:
+        0 0 0 0.5px rgba(15, 23, 42, 0.15),
+        0 0 8px rgba(255, 255, 255, 0.9);
     }
     .nav-title-group {
       display: flex;
@@ -75,7 +75,7 @@
     }
     .subtitle {
       margin: 0;
-      color: #9ca3af;
+      color: #6b7280;
       font-size: 13px;
     }
     .nav-right {
@@ -91,9 +91,9 @@
       padding: 5px 11px;
       border-radius: 999px;
       font-size: 11px;
-      border: 1px solid rgba(148,163,184,0.5);
-      color: #9ca3af;
-      background: rgba(15,23,42,0.9);
+      border: 1px solid rgba(209, 213, 219, 0.9);
+      color: #4b5563;
+      background: rgba(255, 255, 255, 0.9);
       backdrop-filter: blur(12px);
     }
     .pill-dot {
@@ -101,23 +101,23 @@
       height: 8px;
       border-radius: 999px;
       background: #22c55e;
-      box-shadow: 0 0 10px rgba(34,197,94,0.7);
+      box-shadow: 0 0 0 1px rgba(22, 163, 74, 0.2);
     }
     .pill-dot.warn {
       background: #facc15;
-      box-shadow: 0 0 10px rgba(250,204,21,0.7);
+      box-shadow: 0 0 0 1px rgba(234, 179, 8, 0.25);
     }
     .pill-dot.off {
       background: #ef4444;
-      box-shadow: 0 0 10px rgba(239,68,68,0.7);
+      box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.25);
     }
     .nav-tag {
       font-size: 11px;
-      color: #a5b4fc;
+      color: #0f172a;
       padding: 4px 10px;
       border-radius: 999px;
-      border: 1px solid rgba(129,140,248,0.4);
-      background: radial-gradient(circle at 0 0, rgba(129,140,248,0.25), rgba(15,23,42,0.94));
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      background: linear-gradient(135deg, #e5f0ff, #ffffff);
     }
 
     /* Layout */
@@ -155,14 +155,12 @@
 
     .card {
       position: relative;
-      background:
-        radial-gradient(circle at 0 0, rgba(59,130,246,0.22), transparent 60%),
-        radial-gradient(circle at 100% 100%, rgba(15,23,42,0.9), #020617);
-      border-radius: 20px;
+      background: #ffffff;
+      border-radius: 18px;
       padding: 16px 16px 14px;
-      border: 1px solid rgba(55,65,81,0.9);
-      box-shadow: 0 18px 40px rgba(0,0,0,0.7);
-      backdrop-filter: blur(18px);
+      border: 1px solid rgba(229, 231, 235, 0.95);
+      box-shadow:
+        0 14px 30px rgba(15, 23, 42, 0.08);
       overflow: hidden;
     }
     .card::before {
@@ -170,11 +168,9 @@
       position: absolute;
       inset: -40%;
       background:
-        radial-gradient(circle at 0 0, rgba(96,165,250,0.2), transparent 55%),
-        radial-gradient(circle at 100% 0, rgba(52,211,153,0.15), transparent 60%);
-      opacity: 0.45;
+        radial-gradient(circle at 0 0, rgba(10, 132, 255, 0.08), transparent 55%);
       pointer-events: none;
-      mix-blend-mode: soft-light;
+      mix-blend-mode: normal;
     }
     .card-inner {
       position: relative;
@@ -193,7 +189,7 @@
     }
     .muted {
       font-size: 12px;
-      color: #9ca3af;
+      color: #6b7280;
     }
     .muted-xs {
       font-size: 11px;
@@ -202,14 +198,14 @@
 
     label {
       font-size: 12px;
-      color: #9ca3af;
+      color: #6b7280;
       margin-right: 4px;
     }
     select {
-      background: rgba(15,23,42,0.98);
-      color: #e5e7eb;
+      background: #f9fafb;
+      color: #111827;
       border-radius: 999px;
-      border: 1px solid #334155;
+      border: 1px solid #d1d5db;
       padding: 4px 10px;
       font-size: 12px;
       outline: none;
@@ -225,7 +221,7 @@
     }
     .busy-score-label {
       font-size: 13px;
-      color: #9ca3af;
+      color: #6b7280;
     }
     .chip {
       display: inline-flex;
@@ -234,9 +230,9 @@
       padding: 4px 10px;
       border-radius: 999px;
       font-size: 11px;
-      background: rgba(15,23,42,0.9);
-      border: 1px solid rgba(75,85,99,0.8);
-      color: #e5e7eb;
+      background: #f3f4f6;
+      border: 1px solid #e5e7eb;
+      color: #111827;
     }
     .chip-arrow {
       font-size: 14px;
@@ -255,20 +251,20 @@
       font-weight: 500;
     }
     .status-chill {
-      background: rgba(22,163,74,0.18);
-      color: #4ade80;
+      background: rgba(34, 197, 94, 0.14);
+      color: #166534;
     }
     .status-medium {
-      background: rgba(234,179,8,0.18);
-      color: #fde047;
+      background: rgba(250, 204, 21, 0.18);
+      color: #854d0e;
     }
     .status-packed {
-      background: rgba(220,38,38,0.18);
-      color: #fca5a5;
+      background: rgba(239, 68, 68, 0.12);
+      color: #b91c1c;
     }
     .status-unknown {
-      background: rgba(148,163,184,0.25);
-      color: #e5e7eb;
+      background: rgba(148, 163, 184, 0.18);
+      color: #374151;
     }
     .minor-row {
       display: flex;
@@ -280,7 +276,7 @@
     }
     hr.divider {
       border: none;
-      border-top: 1px solid rgba(55,65,81,0.9);
+      border-top: 1px solid #e5e7eb;
       margin: 10px 0;
     }
 
@@ -292,13 +288,11 @@
       gap: 10px;
     }
     .mini-card {
-      background:
-        radial-gradient(circle at 0 0, rgba(59,130,246,0.25), transparent 55%),
-        rgba(15,23,42,0.97);
-      border-radius: 14px;
+      background: #f9fafb;
+      border-radius: 12px;
       padding: 8px 10px;
-      border: 1px solid rgba(55,65,81,0.9);
-      box-shadow: 0 10px 25px rgba(0,0,0,0.8);
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 6px 16px rgba(15, 23, 42, 0.06);
     }
     .mini-header {
       display: flex;
@@ -317,7 +311,7 @@
     }
     .mini-sub {
       font-size: 11px;
-      color: #9ca3af;
+      color: #6b7280;
     }
 
     /* Heatmap */
@@ -334,14 +328,14 @@
     }
     .heatmap-label {
       font-size: 10px;
-      color: #9ca3af;
+      color: #6b7280;
       text-align: right;
       padding-right: 4px;
       line-height: 12px;
     }
     .heatmap-hour-header {
       font-size: 8px;
-      color: #6b7280;
+      color: #9ca3af;
       text-align: center;
     }
 
@@ -357,7 +351,7 @@
     }
     .insight-label {
       font-size: 12px;
-      color: #9ca3af;
+      color: #6b7280;
     }
     .insight-value {
       font-size: 13px;
@@ -428,7 +422,7 @@
 
           <canvas id="trendChart" height="120"></canvas>
           <div class="muted-xs" id="trendNotes" style="margin-top:6px;">
-            Blue = today. Dotted = average of the last few days.
+            Blue line is today. Dotted line is the average of the last few days.
           </div>
         </div>
       </div>
@@ -541,12 +535,16 @@
             label: "Today",
             data: [],
             borderWidth: 2,
+            borderColor: "#0a84ff",
+            pointRadius: 0,
             tension: 0.3
           },
           {
             label: "Usual",
             data: [],
             borderWidth: 2,
+            borderColor: "#9ca3af",
+            pointRadius: 0,
             borderDash: [6, 4],
             tension: 0.3
           }
@@ -557,7 +555,7 @@
         plugins: {
           legend: {
             labels: {
-              color: "#e5e7eb",
+              color: "#4b5563",
               font: { size: 11 }
             }
           }
@@ -565,27 +563,27 @@
         scales: {
           x: {
             ticks: {
-              color: "#9ca3af",
+              color: "#6b7280",
               maxRotation: 0,
               autoSkip: true
             },
-            grid: { color: "rgba(148,163,184,0.12)" }
+            grid: { color: "rgba(209,213,219,0.5)" }
           },
           y: {
             min: 0,
             max: 100,
             ticks: {
-              color: "#9ca3af",
+              color: "#6b7280",
               callback: v => v + "%"
             },
-            grid: { color: "rgba(148,163,184,0.12)" }
+            grid: { color: "rgba(209,213,219,0.5)" }
           }
         }
       }
     });
 
     function hourLabel(h) {
-      return new Date(0,0,0,h).toLocaleTimeString([], { hour: "numeric" });
+      return new Date(0, 0, 0, h).toLocaleTimeString([], { hour: "numeric" });
     }
 
     function pickStatus(percent) {
@@ -625,7 +623,7 @@
       trendChart.update();
 
       trendNotes.textContent =
-        `Room: "${displayName}". Blue = today. Dotted = average of the last few days.`;
+        `Room: "${displayName}". Blue line is today. Dotted line is the recent average for that hour.`;
 
       const latestToday = today.length ? today[today.length - 1].percent : null;
       const now = new Date();
@@ -701,7 +699,7 @@
         wrapper.appendChild(hh);
       }
 
-      const dowLabels = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+      const dowLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
       let maxVal = 0;
       for (const row of heatmap) {
@@ -721,11 +719,11 @@
           const cell = document.createElement("div");
           cell.className = "heatmap-cell";
           if (v == null) {
-            cell.style.background = "rgba(15,23,42,0.95)";
+            cell.style.background = "#eef2ff";
           } else {
             const intensity = v / maxVal;
-            const alpha = 0.18 + 0.75 * intensity;
-            cell.style.background = `rgba(56,189,248,${alpha})`;
+            const alpha = 0.15 + 0.7 * intensity;
+            cell.style.background = `rgba(10,132,255,${alpha})`;
           }
           wrapper.appendChild(cell);
         });
@@ -763,8 +761,10 @@
 
       insightPeakHour.textContent = peakHour != null ? hourLabel(peakHour) : "--";
       insightQuietHour.textContent = minHour != null ? hourLabel(minHour) : "--";
-      insightPeakPercent.textContent = peak != null ? `${Math.round(peak)}% full at peak.` : "--`;
-      insightLastReading.textContent = latestToday != null ? `${Math.round(latestToday)}% right now.` : "--";
+      insightPeakPercent.textContent =
+        peak != null ? `${Math.round(peak)}% full at peak.` : "--";
+      insightLastReading.textContent =
+        latestToday != null ? `${Math.round(latestToday)}% right now.` : "--";
     }
 
     function extractLiveList(json) {
