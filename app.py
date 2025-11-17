@@ -1,175 +1,124 @@
 import os
-import requests
-from datetime import datetime, date
-from collections import defaultdict
+from datetime import datetime
 
 from flask import Flask, jsonify, send_from_directory, request
-
+import requests
 import psycopg2
 from psycopg2.extras import RealDictCursor
 
 import tracker  # uses tracker.log_once() and DB helpers
 
-API_URL = "https://goboardapi.azurewebsites.net/api/FacilityCount/GetCountsByAccount?AccountAPIKey=D2A34F88-54D5-472A-8325-8B3E15C1B5EE"
+# Live USC RecSports API
+API_URL = (
+    "https://goboardapi.azurewebsites.net/api/FacilityCount/"
+    "GetCountsByAccount?AccountAPIKey=D2A34F88-54D5-472A-8325-8B3E15C1B5EE"
+)
+
+# Render / local DB URL (set in environment)
 DATABASE_URL = os.environ.get("DATABASE_URL")
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder=".", static_url_path="")
 
 
 def get_db_conn():
+    """
+    Basic Postgres connection helper.
+    tracker.py can either use this or its own connection logic,
+    but we keep this here in case you want to reuse it.
+    """
     if not DATABASE_URL:
-        raise RuntimeError("DATABASE_URL environment variable not set")
-    return psycopg2.connect(DATABASE_URL, sslmode="require")
+        raise RuntimeError("DATABASE_URL environment variable is not set")
+    return psycopg2.connect(DATABASE_URL, sslmode="require", cursor_factory=RealDictCursor)
 
 
-def parse_timestamp(ts_obj):
-    if isinstance(ts_obj, datetime):
-        return ts_obj
-    if isinstance(ts_obj, str):
-        try:
-            return datetime.fromisoformat(ts_obj)
-        except Exception:
-            return None
-    return None
-
-
-def load_area_series(area_name):
-    """
-    Load (timestamp, percent) tuples for a given area from Postgres.
-    """
-    conn = get_db_conn()
-    rows = []
-    try:
-        with conn:
-            with conn.cursor(cursor_factory=RealDictCursor) as cur:
-                cur.execute(
-                    """
-                    SELECT ts, percent
-                    FROM gym_readings
-                    WHERE location_name = %s
-                    ORDER BY ts ASC
-                    """,
-                    (area_name,),
-                )
-                for rec in cur.fetchall():
-                    ts = parse_timestamp(rec["ts"])
-                    pct = rec["percent"]
-                    if ts is None or pct is None:
-                        continue
-                    try:
-                        pct_val = float(pct)
-                    except Exception:
-                        continue
-                    rows.append((ts, pct_val))
-    finally:
-        conn.close()
-
-    return rows
-
-
-def build_trend_data(area_name, days_for_baseline=14, max_recent=300):
-    series = load_area_series(area_name)
-    if not series:
-        return {
-            "recent_points": [],
-            "today_points": [],
-            "baseline_hourly": [],
-            "heatmap": [],
-        }
-
-    series.sort(key=lambda x: x[0])
-
-    today = date.today()
-    cutoff = today.toordinal() - days_for_baseline
-
-    hourly_sum = defaultdict(float)
-    hourly_count = defaultdict(int)
-
-    heatmap_sum = defaultdict(float)
-    heatmap_count = defaultdict(int)
-
-    recent_points = []
-    today_points = []
-
-    for ts, pct in series:
-        recent_points.append({"timestamp": ts.isoformat(), "percent": pct})
-        d = ts.date()
-        dow = ts.weekday()
-        hour = ts.hour
-        ord_day = d.toordinal()
-
-        if d == today:
-            today_points.append({"timestamp": ts.isoformat(), "percent": pct})
-
-        if ord_day >= cutoff:
-            hourly_sum[hour] += pct
-            hourly_count[hour] += 1
-            heatmap_sum[(dow, hour)] += pct
-            heatmap_count[(dow, hour)] += 1
-
-    recent_points = recent_points[-max_recent:]
-
-    baseline_hourly = []
-    for hour in range(24):
-        if hourly_count[hour]:
-            avg = hourly_sum[hour] / hourly_count[hour]
-            baseline_hourly.append({"hour": hour, "avg_percent": round(avg, 1)})
-        else:
-            baseline_hourly.append({"hour": hour, "avg_percent": None})
-
-    heatmap = []
-    for dow in range(7):
-        row = {"dow": dow, "hours": []}
-        for hour in range(24):
-            key = (dow, hour)
-            if heatmap_count[key]:
-                avg = heatmap_sum[key] / heatmap_count[key]
-                row["hours"].append(round(avg, 1))
-            else:
-                row["hours"].append(None)
-        heatmap.append(row)
-
-    return {
-        "recent_points": recent_points,
-        "today_points": today_points,
-        "baseline_hourly": baseline_hourly,
-        "heatmap": heatmap,
-    }
-
-
-@app.get("/api/live")
-def api_live():
-    r = requests.get(API_URL)
-    r.raise_for_status()
-    return jsonify(r.json())
-
-
-@app.get("/api/history")
-def api_history():
-    area = request.args.get("area", "UV Cardio Landing")
-    data = build_trend_data(area)
-    return jsonify({"area": area, **data})
-
-
-@app.post("/api/log")
-def api_log():
-    """
-    Trigger one logging run: fetch live counts and insert rows to Postgres.
-    Called by the scheduler every 15 minutes.
-    """
-    tracker.log_once()
-    return jsonify({"status": "ok"})
-
-
-@app.get("/")
+@app.route("/")
 def index():
+    # Serve the dashboard UI
     return send_from_directory(".", "index.html")
 
 
-@app.get("/<path:path>")
-def static_files(path):
-    return send_from_directory(".", path)
+@app.route("/api/live")
+def api_live():
+    """
+    Proxy the live USC RecSports API.
+    The front-end uses this to show current counts.
+    """
+    try:
+        resp = requests.get(API_URL, timeout=5)
+        resp.raise_for_status()
+    except requests.RequestException as e:
+        return jsonify({"error": "Failed to reach live API", "detail": str(e)}), 502
+
+    try:
+        data = resp.json()
+    except Exception as e:
+        return jsonify({"error": "Failed to parse live API JSON", "detail": str(e)}), 502
+
+    return jsonify(data)
+
+
+@app.route("/api/history")
+def api_history():
+    """
+    Return historical data for one room (area), using your Postgres logs.
+
+    Expected JSON shape (tracker.get_history_for_area should produce this):
+
+    {
+      "today_points": [
+        {"timestamp": "...", "percent": 42},
+        ...
+      ],
+      "baseline_hourly": [
+        {"hour": 0, "avg_percent": 10},
+        ...
+      ],
+      "heatmap": [
+        {"dow": 0, "hours": [val0, val1, ...]},  # Monday
+        ...
+      ]
+    }
+    """
+    area = request.args.get("area")
+    if not area:
+        return jsonify({"error": "Missing 'area' query parameter"}), 400
+
+    try:
+        data = tracker.get_history_for_area(area)
+    except Exception as e:
+        return jsonify({"error": "Failed to load history", "detail": str(e)}), 500
+
+    return jsonify(data)
+
+
+@app.route("/api/log", methods=["GET", "POST"])
+def api_log():
+    """
+    One-shot logger endpoint.
+
+    - Render Cron will hit GET /api/log every 15 minutes.
+    - You can also POST manually if you want.
+    """
+    try:
+        result = tracker.log_once()
+    except Exception as e:
+        return jsonify({"error": "log_once failed", "detail": str(e)}), 500
+
+    # Optional: add a timestamp so you see when it ran
+    result_with_time = {
+        "ran_at": datetime.utcnow().isoformat() + "Z",
+        **(result if isinstance(result, dict) else {"result": result}),
+    }
+    return jsonify(result_with_time)
+
+
+# Optional: simple health check for Render
+@app.route("/health")
+def health():
+    return jsonify({"status": "ok"})
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    # Local dev only. Render will use gunicorn.
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=True)
