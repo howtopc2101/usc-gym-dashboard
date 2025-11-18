@@ -1,1106 +1,926 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <title>USC Gym Live</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+<head>
+  <meta charset="UTF-8" />
+  <title>USC Gym Dashboard · Village & Lyon</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      color-scheme: dark;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      padding: 18px 22px 28px;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+      background:
+        radial-gradient(circle at 0% 0%, #0f172a 0, #020617 40%, #020617 100%),
+        radial-gradient(circle at 100% 100%, #0b1120 0, #000 70%, #000 100%);
+      color: #e5e7eb;
+      min-height: 100vh;
+    }
 
-    <style>
-      :root {
-        --bg-main: #05060b;
-        --bg-elevated: rgba(18, 22, 34, 0.9);
-        --bg-elevated-soft: rgba(18, 22, 34, 0.75);
-        --border-subtle: rgba(255, 255, 255, 0.08);
-        --text-primary: #f5f7ff;
-        --text-secondary: rgba(230, 235, 255, 0.75);
-        --text-muted: rgba(190, 198, 230, 0.55);
-        --accent: #0a84ff;     /* Apple blue */
-        --accent-soft: rgba(10, 132, 255, 0.18);
-        --danger: #ff453a;
-        --ok: #30d158;
-        --warning: #ffd60a;
-        --radius-xl: 22px;
-        --radius-pill: 999px;
-        --shadow-soft: 0 18px 45px rgba(0, 0, 0, 0.55);
-        --shadow-subtle: 0 0 0 0.5px rgba(255, 255, 255, 0.04);
-        --card-padding: 18px 20px;
-      }
+    /* Top bar */
 
-      * {
-        box-sizing: border-box;
-      }
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(31,41,55,0.9);
+    }
+    .nav-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .nav-logo {
+      width: 26px;
+      height: 26px;
+      border-radius: 9px;
+      background:
+        radial-gradient(circle at 25% 0%, #38bdf8 0, transparent 55%),
+        radial-gradient(circle at 80% 100%, #0ea5e9 0, transparent 50%),
+        #020617;
+      border: 1px solid rgba(148,163,184,0.65);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow:
+        0 0 0 1px rgba(15,23,42,0.9),
+        0 14px 32px rgba(15,23,42,0.95);
+    }
+    .nav-logo-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      background: #38bdf8;
+      box-shadow: 0 0 12px rgba(56,189,248,0.9);
+    }
+    .nav-title-group {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    h1 {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 650;
+      letter-spacing: 0.01em;
+    }
+    .subtitle {
+      margin: 0;
+      color: #9ca3af;
+      font-size: 13px;
+    }
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .pill-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 11px;
+      border-radius: 999px;
+      font-size: 11px;
+      border: 1px solid rgba(148,163,184,0.5);
+      color: #9ca3af;
+      background: rgba(15,23,42,0.85);
+      backdrop-filter: blur(12px);
+    }
+    .pill-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #22c55e;
+      box-shadow: 0 0 10px rgba(34,197,94,0.7);
+    }
+    .pill-dot.warn {
+      background: #facc15;
+      box-shadow: 0 0 10px rgba(250,204,21,0.7);
+    }
+    .pill-dot.off {
+      background: #ef4444;
+      box-shadow: 0 0 10px rgba(239,68,68,0.7);
+    }
+    .nav-tag {
+      font-size: 11px;
+      color: #a5b4fc;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(129,140,248,0.4);
+      background: radial-gradient(circle at 0 0, rgba(129,140,248,0.25), rgba(15,23,42,0.94));
+    }
 
+    /* Layout */
+
+    .layout-main {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+    .layout-bottom {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+      gap: 18px;
+    }
+    @media (max-width: 900px) {
       body {
-        margin: 0;
-        min-height: 100vh;
-        font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
-          "SF Pro Display", Arial, sans-serif;
-        background:
-          radial-gradient(circle at 0% -20%, #1b2842 0, transparent 55%),
-          radial-gradient(circle at 100% 120%, #141927 0, transparent 55%),
-          linear-gradient(135deg, #02040a, #05060b 60%, #050509);
-        color: var(--text-primary);
-        -webkit-font-smoothing: antialiased;
-        padding: 16px 20px 28px;
+        padding: 14px 14px 24px;
       }
-
-      .app-shell {
-        max-width: 1400px;
-        margin: 0 auto;
-        display: flex;
+      .layout-main,
+      .layout-bottom {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .nav {
         flex-direction: column;
-        gap: 18px;
-      }
-
-      /* Top bar */
-
-      .top-bar {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 14px;
-      }
-
-      .top-left {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-      }
-
-      .app-title-row {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
-
-      .status-dot {
-        width: 9px;
-        height: 9px;
-        border-radius: 50%;
-        background: var(--accent);
-        box-shadow: 0 0 0 4px var(--accent-soft);
-      }
-
-      h1 {
-        font-size: 20px;
-        font-weight: 600;
-        letter-spacing: 0.02em;
-        margin: 0;
-      }
-
-      .subtitle {
-        font-size: 13px;
-        color: var(--text-muted);
-      }
-
-      .top-right {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-
-      .chip {
-        border-radius: var(--radius-pill);
-        padding: 4px 11px;
-        background: rgba(15, 20, 30, 0.9);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        font-size: 11px;
-        color: var(--text-secondary);
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-      }
-
-      .pill-dot {
-        width: 7px;
-        height: 7px;
-        border-radius: 999px;
-        background: var(--ok);
-      }
-
-      /* Layout grid */
-
-      .grid {
-        display: grid;
-        grid-template-columns: minmax(0, 1.6fr) minmax(0, 1.2fr);
-        grid-template-rows: auto auto;
-        grid-template-areas:
-          "today current"
-          "weekly highlights";
-        gap: 16px;
-      }
-
-      @media (max-width: 960px) {
-        .grid {
-          grid-template-columns: minmax(0, 1fr);
-          grid-template-areas:
-            "today"
-            "current"
-            "weekly"
-            "highlights";
-        }
-      }
-
-      .card {
-        background: var(--bg-elevated-soft);
-        backdrop-filter: blur(26px);
-        -webkit-backdrop-filter: blur(26px);
-        border-radius: var(--radius-xl);
-        border: 1px solid var(--border-subtle);
-        box-shadow: var(--shadow-soft), var(--shadow-subtle);
-        padding: var(--card-padding);
-        position: relative;
-        overflow: hidden;
-      }
-
-      .card::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background: radial-gradient(
-          circle at top left,
-          rgba(88, 102, 255, 0.28),
-          transparent 60%
-        );
-        opacity: 0.16;
-        pointer-events: none;
-      }
-
-      .card-inner {
-        position: relative;
-        z-index: 1;
-      }
-
-      .card-header {
-        display: flex;
-        justify-content: space-between;
-        gap: 12px;
-        margin-bottom: 12px;
-      }
-
-      .card-title-group {
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-      }
-
-      .card-title {
-        font-size: 14px;
-        font-weight: 600;
-        letter-spacing: 0.03em;
-        text-transform: uppercase;
-        color: var(--text-secondary);
-      }
-
-      .card-subtitle {
-        font-size: 12px;
-        color: var(--text-muted);
-      }
-
-      .card-meta {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-end;
-        gap: 6px;
-      }
-
-      .select-wrapper {
-        position: relative;
-      }
-
-      .select-wrapper select {
-        appearance: none;
-        -webkit-appearance: none;
-        background: rgba(3, 10, 24, 0.85);
-        border: 1px solid rgba(255, 255, 255, 0.16);
-        border-radius: var(--radius-pill);
-        padding: 6px 28px 6px 11px;
-        color: var(--text-primary);
-        font-size: 12px;
-        outline: none;
-      }
-
-      .select-wrapper::after {
-        content: "▾";
-        position: absolute;
-        right: 9px;
-        top: 50%;
-        transform: translateY(-50%);
-        font-size: 11px;
-        color: var(--text-secondary);
-        pointer-events: none;
-      }
-
-      .meta-label {
-        font-size: 11px;
-        color: var(--text-muted);
-      }
-
-      .meta-value {
-        font-size: 12px;
-        color: var(--text-secondary);
-      }
-
-      /* Today vs usual */
-
-      #today-card {
-        grid-area: today;
-      }
-
-      .today-main-row {
-        display: flex;
-        gap: 16px;
         align-items: flex-start;
       }
-
-      .today-score {
-        min-width: 70px;
-      }
-
-      .today-score-value {
-        font-size: 32px;
-        font-weight: 600;
-        line-height: 1;
-        margin-bottom: 2px;
-      }
-
-      .today-score-label {
-        font-size: 12px;
-        color: var(--text-secondary);
-        margin-bottom: 8px;
-      }
-
-      .pill-status {
-        border-radius: var(--radius-pill);
-        font-size: 11px;
-        padding: 3px 8px;
-        background: rgba(255, 214, 10, 0.14);
-        color: #ffd60a;
-        border: 1px solid rgba(255, 214, 10, 0.4);
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-      }
-
-      .pill-status.ok {
-        background: rgba(48, 209, 88, 0.12);
-        color: var(--ok);
-        border-color: rgba(48, 209, 88, 0.45);
-      }
-
-      .pill-status.busy {
-        background: rgba(255, 69, 58, 0.12);
-        color: var(--danger);
-        border-color: rgba(255, 69, 58, 0.48);
-      }
-
-      .pill-status-dot {
-        width: 7px;
-        height: 7px;
-        border-radius: 50%;
-        background: currentColor;
-      }
-
-      .chart-wrapper {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-      }
-
-      canvas {
-        width: 100%;
-        max-width: 100%;
-      }
-
-      .chart-legend {
-        display: flex;
-        gap: 10px;
-        font-size: 11px;
-        color: var(--text-muted);
-      }
-
-      .legend-item {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-      }
-
-      .legend-swatch {
-        width: 18px;
-        height: 3px;
-        border-radius: 999px;
-      }
-
-      .legend-today {
-        background: var(--accent);
-      }
-
-      .legend-typical {
-        background: rgba(255, 255, 255, 0.5);
-      }
-
-      .chart-caption {
-        font-size: 11px;
-        color: var(--text-muted);
-        margin-top: 2px;
-      }
-
-      /* Current room card */
-
-      #current-card {
-        grid-area: current;
-      }
-
-      .current-header-row {
-        display: flex;
+      .nav-right {
+        align-self: stretch;
         justify-content: space-between;
-        align-items: flex-start;
-        gap: 8px;
       }
+    }
 
-      .current-count {
-        font-size: 26px;
-        font-weight: 600;
-      }
+    /* Cards */
 
-      .current-capacity {
-        font-size: 14px;
-        color: var(--text-secondary);
-      }
+    .card {
+      position: relative;
+      background:
+        radial-gradient(circle at 0 0, rgba(59,130,246,0.25), transparent 60%),
+        radial-gradient(circle at 100% 100%, rgba(15,23,42,0.9), #020617);
+      border-radius: 20px;
+      padding: 16px 16px 14px;
+      border: 1px solid rgba(55,65,81,0.9);
+      box-shadow:
+        0 18px 60px rgba(0,0,0,0.9),
+        0 0 0 1px rgba(15,23,42,0.9);
+      backdrop-filter: blur(18px);
+      overflow: hidden;
+    }
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: -40%;
+      background:
+        radial-gradient(circle at 0 0, rgba(96,165,250,0.3), transparent 55%),
+        radial-gradient(circle at 100% 0, rgba(52,211,153,0.2), transparent 60%);
+      opacity: 0.5;
+      pointer-events: none;
+      mix-blend-mode: soft-light;
+    }
+    .card-inner {
+      position: relative;
+      z-index: 1;
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .card-title {
+      font-size: 15px;
+      font-weight: 600;
+    }
+    .muted {
+      font-size: 12px;
+      color: #9ca3af;
+    }
+    .muted-xs {
+      font-size: 11px;
+      color: #9ca3af;
+    }
 
-      .current-label {
-        font-size: 12px;
-        color: var(--text-muted);
-      }
+    label {
+      font-size: 12px;
+      color: #9ca3af;
+      margin-right: 4px;
+    }
+    select {
+      background: rgba(15,23,42,0.95);
+      color: #e5e7eb;
+      border-radius: 999px;
+      border: 1px solid #334155;
+      padding: 4px 10px;
+      font-size: 12px;
+      outline: none;
+      appearance: none;
+    }
 
-      .current-updated {
-        font-size: 11px;
-        color: var(--text-muted);
-      }
+    /* Busy score */
 
-      .mini-grid {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 10px;
-        margin-top: 14px;
-      }
+    .busy-score-value {
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+    .busy-score-label {
+      font-size: 13px;
+      color: #9ca3af;
+    }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      background: rgba(15,23,42,0.9);
+      border: 1px solid rgba(75,85,99,0.85);
+      color: #e5e7eb;
+    }
+    .chip-arrow {
+      font-size: 14px;
+    }
 
-      .mini-card {
-        background: linear-gradient(
-          145deg,
-          rgba(10, 12, 22, 0.98),
-          rgba(14, 20, 36, 0.98)
-        );
-        border-radius: 16px;
-        padding: 10px 11px;
-        border: 1px solid rgba(255, 255, 255, 0.07);
-        display: flex;
-        justify-content: space-between;
-        gap: 6px;
-      }
+    /* Live card */
 
-      .mini-name {
-        font-size: 12px;
-        color: var(--text-secondary);
-        margin-bottom: 3px;
-      }
+    .live-number {
+      font-size: 32px;
+      font-weight: 700;
+    }
+    .status-pill {
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+    .status-chill {
+      background: rgba(22,163,74,0.18);
+      color: #4ade80;
+    }
+    .status-medium {
+      background: rgba(234,179,8,0.18);
+      color: #fde047;
+    }
+    .status-packed {
+      background: rgba(220,38,38,0.18);
+      color: #fca5a5;
+    }
+    .status-unknown {
+      background: rgba(148,163,184,0.25);
+      color: #e5e7eb;
+    }
+    .minor-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 4px;
+    }
+    hr.divider {
+      border: none;
+      border-top: 1px solid rgba(55,65,81,0.9);
+      margin: 10px 0;
+    }
 
-      .mini-sub {
-        font-size: 11px;
-        color: var(--text-muted);
-      }
+    /* Mini cards */
 
-      .mini-value {
-        font-size: 14px;
-        font-weight: 500;
-        text-align: right;
-      }
+    .mini-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 10px;
+    }
+    .mini-card {
+      background:
+        radial-gradient(circle at 0 0, rgba(59,130,246,0.32), transparent 55%),
+        rgba(15,23,42,0.97);
+      border-radius: 14px;
+      padding: 8px 10px;
+      border: 1px solid rgba(55,65,81,0.9);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.9);
+    }
+    .mini-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 2px;
+      gap: 4px;
+    }
+    .mini-title {
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .mini-number {
+      font-size: 18px;
+      font-weight: 600;
+    }
+    .mini-sub {
+      font-size: 11px;
+      color: #9ca3af;
+    }
 
-      .mini-percent {
-        font-size: 11px;
-        color: var(--text-secondary);
-      }
+    /* Heatmap */
 
-      /* Weekly pattern */
+    .heatmap-grid {
+      display: grid;
+      grid-template-columns: 56px repeat(24, minmax(8px, 1fr));
+      gap: 2px;
+      margin-top: 6px;
+    }
+    .heatmap-cell {
+      height: 12px;
+      border-radius: 4px;
+    }
+    .heatmap-label {
+      font-size: 10px;
+      color: #9ca3af;
+      text-align: right;
+      padding-right: 4px;
+      line-height: 12px;
+    }
+    .heatmap-hour-header {
+      font-size: 8px;
+      color: #6b7280;
+      text-align: center;
+    }
 
-      #weekly-card {
-        grid-area: weekly;
-      }
+    /* Insights */
 
-      .heatmap-grid {
-        margin-top: 6px;
-        display: grid;
-        grid-template-columns: 40px 1fr;
-        gap: 8px;
-        align-items: stretch;
-      }
-
-      .heatmap-days {
-        display: flex;
-        flex-direction: column;
-        gap: 3px;
-        font-size: 11px;
-        color: var(--text-muted);
-        padding-top: 4px;
-      }
-
-      .heatmap-cells {
-        display: grid;
-        grid-template-columns: repeat(24, minmax(0, 1fr));
-        gap: 2px;
-      }
-
-      .heat-cell {
-        width: 100%;
-        padding-top: 16%;
-        border-radius: 3px;
-        background: rgba(255, 255, 255, 0.02);
-      }
-
-      .heat-cell[data-level="1"] {
-        background: rgba(10, 132, 255, 0.22);
-      }
-
-      .heat-cell[data-level="2"] {
-        background: rgba(10, 132, 255, 0.4);
-      }
-
-      .heat-cell[data-level="3"] {
-        background: rgba(10, 132, 255, 0.7);
-      }
-
-      .heat-axis {
-        display: flex;
-        justify-content: space-between;
-        font-size: 10px;
-        color: var(--text-muted);
-        margin-top: 6px;
-      }
-
-      /* Highlights */
-
-      #highlights-card {
-        grid-area: highlights;
-      }
-
-      .highlights-list {
-        margin-top: 4px;
-        list-style: none;
-        padding: 0;
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        font-size: 12px;
-      }
-
-      .highlights-list li {
-        display: flex;
-        justify-content: space-between;
-        color: var(--text-secondary);
-      }
-
-      .highlights-label {
-        color: var(--text-muted);
-      }
-
-      .muted-note {
-        font-size: 11px;
-        color: var(--text-muted);
-        margin-top: 6px;
-      }
-
-      /* Empty state */
-
-      .empty {
-        font-size: 12px;
-        color: var(--text-muted);
-        margin-top: 4px;
-      }
-
-      .skeleton {
-        background: linear-gradient(
-          90deg,
-          rgba(255, 255, 255, 0.04),
-          rgba(255, 255, 255, 0.12),
-          rgba(255, 255, 255, 0.04)
-        );
-        background-size: 200% 100%;
-        animation: shimmer 1.3s infinite;
-        border-radius: 999px;
-        height: 8px;
-      }
-
-      @keyframes shimmer {
-        0% {
-          background-position: 200% 0;
-        }
-        100% {
-          background-position: -200% 0;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <div class="app-shell">
-      <header class="top-bar">
-        <div class="top-left">
-          <div class="app-title-row">
-            <span class="status-dot"></span>
-            <h1>USC Gym Live</h1>
-          </div>
-          <div class="subtitle">
-            Quick view of how busy Village, Lyon, and HSC are right now.
-          </div>
-        </div>
-        <div class="top-right">
-          <div class="chip">USC Rec Sports · Internal</div>
-          <div class="chip">
-            <span class="pill-dot"></span>
-            <span id="live-pill-text">Live</span>
-          </div>
-        </div>
-      </header>
-
-      <main class="grid">
-        <!-- Today vs usual -->
-        <section id="today-card" class="card">
-          <div class="card-inner">
-            <div class="card-header">
-              <div class="card-title-group">
-                <div class="card-title">Today vs usual</div>
-                <div class="card-subtitle">
-                  How busy this room is today compared to a normal day.
-                </div>
-              </div>
-              <div class="card-meta">
-                <div class="select-wrapper">
-                  <select id="room-select"></select>
-                </div>
-                <div class="meta-value" id="today-date-label"></div>
-              </div>
-            </div>
-
-            <div class="today-main-row">
-              <div class="today-score">
-                <div class="today-score-value" id="today-score-value">
-                  --
-                </div>
-                <div class="today-score-label" id="today-score-caption">
-                  Waiting for data…
-                </div>
-                <span class="pill-status" id="today-status-pill">
-                  <span class="pill-status-dot"></span>
-                  <span id="today-status-text">Unknown</span>
-                </span>
-              </div>
-              <div class="chart-wrapper">
-                <canvas id="today-chart" height="120"></canvas>
-                <div class="chart-legend">
-                  <div class="legend-item">
-                    <span class="legend-swatch legend-today"></span>Today
-                  </div>
-                  <div class="legend-item">
-                    <span class="legend-swatch legend-typical"></span>Usual
-                  </div>
-                </div>
-                <div class="chart-caption">
-                  Blue line is today. Dotted line is the average of the last few
-                  days.
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- Current room -->
-        <section id="current-card" class="card">
-          <div class="card-inner">
-            <div class="card-header">
-              <div class="card-title-group">
-                <div class="card-title" id="current-room-label">
-                  Village cardio floor
-                </div>
-                <div class="card-subtitle">Current occupancy</div>
-              </div>
-              <div class="card-meta">
-                <div class="current-count">
-                  <span id="current-count-value">--</span>
-                  <span class="current-capacity" id="current-capacity-value"
-                    >/ --</span
-                  >
-                </div>
-                <div class="current-label">people right now</div>
-                <div class="current-updated" id="current-updated-label">
-                  Updated: --
-                </div>
-              </div>
-            </div>
-
-            <div class="mini-grid" id="mini-rooms"></div>
-          </div>
-        </section>
-
-        <!-- Weekly pattern -->
-        <section id="weekly-card" class="card">
-          <div class="card-inner">
-            <div class="card-header">
-              <div class="card-title-group">
-                <div class="card-title">Weekly pattern</div>
-                <div class="card-subtitle">
-                  Average fullness by day and hour.
-                </div>
-              </div>
-            </div>
-            <div id="weekly-container">
-              <div class="heatmap-grid">
-                <div class="heatmap-days" id="heatmap-days"></div>
-                <div class="heatmap-cells" id="heatmap-cells"></div>
-              </div>
-              <div class="heat-axis">
-                <span>12 AM</span>
-                <span>Noon</span>
-                <span>6 PM</span>
-                <span>12 AM</span>
-              </div>
-              <div class="chart-caption">
-                Darker cells mean busier. Based on recent days for this room.
-              </div>
-            </div>
-            <div id="weekly-empty" class="empty" style="display: none">
-              Not enough history yet. This will fill in as your logger runs.
-            </div>
-          </div>
-        </section>
-
-        <!-- Highlights -->
-        <section id="highlights-card" class="card">
-          <div class="card-inner">
-            <div class="card-header">
-              <div class="card-title-group">
-                <div class="card-title">Highlights</div>
-                <div class="card-subtitle">
-                  Typical pattern based on your logs.
-                </div>
-              </div>
-            </div>
-            <ul class="highlights-list" id="highlights-list">
-              <li>
-                <span class="highlights-label">Busiest hour</span>
-                <span id="highlight-busiest">--</span>
-              </li>
-              <li>
-                <span class="highlights-label">Quietest hour</span>
-                <span id="highlight-quietest">--</span>
-              </li>
-              <li>
-                <span class="highlights-label">Typical peak</span>
-                <span id="highlight-peak">--</span>
-              </li>
-              <li>
-                <span class="highlights-label">Right now</span>
-                <span id="highlight-now">--</span>
-              </li>
-            </ul>
-            <div class="muted-note">
-              The longer your cron runs, the smarter this gets.
-            </div>
-          </div>
-        </section>
-      </main>
+    .insight-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 6px;
+      margin-bottom: 4px;
+      flex-wrap: wrap;
+    }
+    .insight-label {
+      font-size: 12px;
+      color: #9ca3af;
+    }
+    .insight-value {
+      font-size: 13px;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="nav-left">
+      <div class="nav-logo">
+        <div class="nav-logo-dot"></div>
+      </div>
+      <div class="nav-title-group">
+        <h1>USC Gym Dashboard</h1>
+        <p class="subtitle">Village Fitness, Lyon Center, and HSC live activity and trends.</p>
+      </div>
     </div>
+    <div class="nav-right">
+      <div class="nav-tag">USC Rec Sports · Internal tool</div>
+      <div class="pill-badge" id="liveStatusGlobal">
+        <span class="pill-dot" id="liveStatusDot"></span>
+        <span id="liveStatusText">Live · just updated</span>
+      </div>
+    </div>
+  </header>
 
-    <script>
-      // Friendly names -> keep API keys as values
-      const ROOM_OPTIONS = [
-        { api: "UV Cardio Landing", label: "Village cardio floor" },
-        { api: "UV Strength Room", label: "Village strength floor" },
-        { api: "LRC Weight Room", label: "Lyon weight room" },
-        { api: "HSC Weight Room", label: "HSC weight room" },
+  <main>
+    <section class="layout-main">
+      <div class="card">
+        <div class="card-inner">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Gym busy score</div>
+              <div class="muted">Based on current occupancy and recent patterns.</div>
+            </div>
+            <div>
+              <label for="areaSelect">Area</label>
+              <select id="areaSelect">
+                <!-- value = API name, label = friendly name -->
+                <option value="UV Cardio Landing">Village Cardio Area (Landing)</option>
+                <option value="UV Cardio Room">Village Cardio Room</option>
+                <option value="UV Strength Landing">Village Strength Area (Landing)</option>
+                <option value="UV Strength Room">Village Strength Room</option>
+                <option value="UV Group Ex 1">Village Group Studio 1</option>
+                <option value="UV Group Ex 2">Village Group Studio 2</option>
+                <option value="UV Queenax">Village Functional Training</option>
+                <option value="LRC Weight Room">Lyon Weight Room</option>
+                <option value="LRC Functional Training Room">Lyon Functional Training</option>
+                <option value="LRC Free Weights & Stretching">Lyon Free Weights & Stretch</option>
+                <option value="HSC Cardio">HSC Cardio Area</option>
+                <option value="HSC Strength Machines">HSC Strength Machines</option>
+                <option value="HSC Weight Room">HSC Weight Room</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="display:flex; gap:16px; flex-wrap:wrap; align-items:flex-end; margin-bottom:10px;">
+            <div>
+              <div class="busy-score-value" id="busyScoreValue">--</div>
+              <div class="busy-score-label" id="busyScoreLabel">Waiting for data…</div>
+            </div>
+            <div id="nowVsNormalChip" class="chip" style="display:none;">
+              <span class="chip-arrow" id="nowVsNormalArrow">↑</span>
+              <span id="nowVsNormalText">Busier than usual</span>
+            </div>
+          </div>
+
+          <canvas id="trendChart" height="120"></canvas>
+          <div class="muted-xs" id="trendNotes" style="margin-top:6px;">
+            Today vs typical for the selected area.
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-inner">
+          <div class="card-header">
+            <div class="card-title" id="liveAreaTitle">Village Cardio Area (Landing)</div>
+            <span id="liveStatusPill" class="status-pill status-unknown">Unknown</span>
+          </div>
+          <div class="live-number" id="liveNumber">-- / --</div>
+          <div class="minor-row">
+            <span class="muted" id="livePercent">Current occupancy</span>
+            <span class="muted-xs" id="liveUpdated">Updated: --</span>
+          </div>
+
+          <hr class="divider" />
+
+          <div class="mini-cards" id="miniCards"></div>
+          <div class="muted-xs" style="margin-top:6px;">
+            These update every minute based on live counts.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="layout-bottom">
+      <div class="card">
+        <div class="card-inner">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Weekly heatmap</div>
+              <div class="muted">Average percent full by day and hour (recent days).</div>
+            </div>
+          </div>
+          <div class="muted-xs" style="margin-bottom:4px;">Darker = busier, for the selected area.</div>
+          <div id="heatmapContainer"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-inner">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Insights</div>
+              <div class="muted">Based on typical patterns from your logs.</div>
+            </div>
+          </div>
+
+          <div class="insight-row">
+            <span class="insight-label">Busiest hour (typical)</span>
+            <span class="insight-value" id="insightPeakHour">--</span>
+          </div>
+          <div class="insight-row">
+            <span class="insight-label">Quietest hour (typical)</span>
+            <span class="insight-value" id="insightQuietHour">--</span>
+          </div>
+          <div class="insight-row">
+            <span class="insight-label">Typical peak load</span>
+            <span class="insight-value" id="insightPeakPercent">--</span>
+          </div>
+          <div class="insight-row">
+            <span class="insight-label">Most recent reading</span>
+            <span class="insight-value" id="insightLastReading">--</span>
+          </div>
+          <div class="muted-xs" style="margin-top:8px;">
+            Insights get more accurate as you log more days of data.
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const areaSelect = document.getElementById("areaSelect");
+    const trendNotes = document.getElementById("trendNotes");
+    const ctx = document.getElementById("trendChart").getContext("2d");
+
+    const liveAreaTitle = document.getElementById("liveAreaTitle");
+    const liveStatusPill = document.getElementById("liveStatusPill");
+    const liveNumber = document.getElementById("liveNumber");
+    const livePercent = document.getElementById("livePercent");
+    const liveUpdated = document.getElementById("liveUpdated");
+    const miniCards = document.getElementById("miniCards");
+
+    const busyScoreValue = document.getElementById("busyScoreValue");
+    const busyScoreLabel = document.getElementById("busyScoreLabel");
+    const nowVsNormalChip = document.getElementById("nowVsNormalChip");
+    const nowVsNormalArrow = document.getElementById("nowVsNormalArrow");
+    const nowVsNormalText = document.getElementById("nowVsNormalText");
+
+    const heatmapContainer = document.getElementById("heatmapContainer");
+
+    const insightPeakHour = document.getElementById("insightPeakHour");
+    const insightQuietHour = document.getElementById("insightQuietHour");
+    const insightPeakPercent = document.getElementById("insightPeakPercent");
+    const insightLastReading = document.getElementById("insightLastReading");
+
+    const liveStatusDot = document.getElementById("liveStatusDot");
+    const liveStatusText = document.getElementById("liveStatusText");
+
+    let lastLiveTimestamp = null;
+
+    let trendChart = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: [],
+        datasets: [
+          {
+            label: "Today",
+            data: [],
+            borderWidth: 2,
+            tension: 0.3
+          },
+          {
+            label: "Typical",
+            data: [],
+            borderWidth: 2,
+            borderDash: [6, 4],
+            tension: 0.3
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            labels: {
+              color: "#e5e7eb",
+              font: { size: 11 }
+            }
+          }
+        },
+        scales: {
+          x: {
+            ticks: {
+              color: "#9ca3af",
+              maxRotation: 0,
+              autoSkip: true
+            },
+            grid: { color: "rgba(148,163,184,0.18)" }
+          },
+          y: {
+            min: 0,
+            max: 100,
+            ticks: {
+              color: "#9ca3af",
+              callback: v => v + "%"
+            },
+            grid: { color: "rgba(148,163,184,0.18)" }
+          }
+        }
+      }
+    });
+
+    function hourLabel(h) {
+      return new Date(0,0,0,h).toLocaleTimeString([], { hour: "numeric" });
+    }
+
+    function pickStatus(percent) {
+      if (percent == null) return { text: "Unknown", cls: "status-pill status-unknown" };
+      if (percent < 40) return { text: "Chill", cls: "status-pill status-chill" };
+      if (percent < 70) return { text: "Moderate", cls: "status-pill status-medium" };
+      return { text: "Packed", cls: "status-pill status-packed" };
+    }
+
+    async function fetchHistory(apiName) {
+      const res = await fetch(`/api/history?area=${encodeURIComponent(apiName)}`);
+      return await res.json();
+    }
+
+    async function fetchLive() {
+      const res = await fetch("/api/live");
+      return await res.json();
+    }
+
+    function buildTrendChart(displayName, historyData) {
+      const today = historyData.today_points || [];
+      const baseline = historyData.baseline_hourly || [];
+
+      const labels = Array.from({ length: 24 }, (_, h) => hourLabel(h));
+
+      const todaySeries = new Array(24).fill(null);
+      today.forEach(p => {
+        const d = new Date(p.timestamp);
+        todaySeries[d.getHours()] = p.percent;
+      });
+
+      const typicalSeries = baseline.map(item => item.avg_percent);
+
+      trendChart.data.labels = labels;
+      trendChart.data.datasets[0].data = todaySeries;
+      trendChart.data.datasets[1].data = typicalSeries;
+      trendChart.update();
+
+      trendNotes.textContent =
+        `Showing "${displayName}". Solid line is today; dotted line is the recent average for that hour.`;
+
+      const latestToday = today.length ? today[today.length - 1].percent : null;
+      const now = new Date();
+      const hour = now.getHours();
+      const baselineEntry = baseline.find(b => b.hour === hour);
+      const typicalNow = baselineEntry ? baselineEntry.avg_percent : null;
+
+      updateBusyScore(latestToday, typicalNow);
+      updateInsights(baseline, latestToday);
+    }
+
+    function updateBusyScore(latestToday, typicalNow) {
+      if (latestToday == null) {
+        busyScoreValue.textContent = "--";
+        busyScoreLabel.textContent = "Waiting for enough data for today.";
+        nowVsNormalChip.style.display = "none";
+        return;
+      }
+
+      let diff = 0;
+      if (typicalNow != null) {
+        diff = latestToday - typicalNow;
+      }
+      let rawScore = latestToday + diff * 0.4;
+      rawScore = Math.max(0, Math.min(100, rawScore));
+
+      busyScoreValue.textContent = Math.round(rawScore);
+      if (rawScore < 35) {
+        busyScoreLabel.textContent = "Pretty quiet right now.";
+      } else if (rawScore < 70) {
+        busyScoreLabel.textContent = "Moderately busy, usually manageable.";
+      } else {
+        busyScoreLabel.textContent = "Expect waits for equipment.";
+      }
+
+      if (typicalNow == null) {
+        nowVsNormalChip.style.display = "none";
+        return;
+      }
+
+      const delta = latestToday - typicalNow;
+      const absDelta = Math.abs(Math.round(delta));
+      nowVsNormalChip.style.display = "inline-flex";
+
+      if (Math.abs(delta) < 5) {
+        nowVsNormalArrow.textContent = "≈";
+        nowVsNormalText.textContent = "About as busy as usual for this time.";
+      } else if (delta > 0) {
+        nowVsNormalArrow.textContent = "↑";
+        nowVsNormalText.textContent = `${absDelta}% busier than usual than typical right now.`;
+      } else {
+        nowVsNormalArrow.textContent = "↓";
+        nowVsNormalText.textContent = `${absDelta}% quieter than usual than typical right now.`;
+      }
+    }
+
+    function buildHeatmap(historyData) {
+      const heatmap = historyData.heatmap || [];
+      heatmapContainer.innerHTML = "";
+
+      const wrapper = document.createElement("div");
+      wrapper.className = "heatmap-grid";
+
+      const hoursHeader = document.createElement("div");
+      hoursHeader.className = "heatmap-label";
+      hoursHeader.textContent = "";
+      wrapper.appendChild(hoursHeader);
+
+      for (let h = 0; h < 24; h++) {
+        const hh = document.createElement("div");
+        hh.className = "heatmap-hour-header";
+        hh.textContent = h % 2 === 0 ? h : "";
+        wrapper.appendChild(hh);
+      }
+
+      const dowLabels = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+
+      let maxVal = 0;
+      for (const row of heatmap) {
+        for (const v of row.hours) {
+          if (v != null && v > maxVal) maxVal = v;
+        }
+      }
+      if (maxVal === 0) maxVal = 1;
+
+      heatmap.forEach(row => {
+        const label = document.createElement("div");
+        label.className = "heatmap-label";
+        label.textContent = dowLabels[row.dow] || "?";
+        wrapper.appendChild(label);
+
+        row.hours.forEach(v => {
+          const cell = document.createElement("div");
+          cell.className = "heatmap-cell";
+          if (v == null) {
+            cell.style.background = "rgba(15,23,42,0.9)";
+          } else {
+            const intensity = v / maxVal;
+            const alpha = 0.18 + 0.75 * intensity;
+            cell.style.background = `rgba(56,189,248,${alpha})`;
+          }
+          wrapper.appendChild(cell);
+        });
+      });
+
+      heatmapContainer.appendChild(wrapper);
+    }
+
+    function updateInsights(baselineHourly, latestToday) {
+      if (!baselineHourly || baselineHourly.length === 0) {
+        insightPeakHour.textContent = "--";
+        insightQuietHour.textContent = "--";
+        insightPeakPercent.textContent = "--";
+        insightLastReading.textContent = latestToday != null ? `${latestToday}%` : "--";
+        return;
+      }
+
+      let peak = null;
+      let peakHour = null;
+      let min = null;
+      let minHour = null;
+
+      baselineHourly.forEach(entry => {
+        const val = entry.avg_percent;
+        if (val == null) return;
+        if (peak == null || val > peak) {
+          peak = val;
+          peakHour = entry.hour;
+        }
+        if (min == null || val < min) {
+          min = val;
+          minHour = entry.hour;
+        }
+      });
+
+      insightPeakHour.textContent = peakHour != null ? hourLabel(peakHour) : "--";
+      insightQuietHour.textContent = minHour != null ? hourLabel(minHour) : "--";
+      insightPeakPercent.textContent = peak != null ? `${Math.round(peak)}% full at peak.` : "--";
+      insightLastReading.textContent = latestToday != null ? `${Math.round(latestToday)}% right now.` : "--";
+    }
+
+    function extractLiveList(json) {
+      if (Array.isArray(json)) return json;
+      for (const v of Object.values(json)) {
+        if (Array.isArray(v) && v.length && typeof v[0] === "object") return v;
+      }
+      return [];
+    }
+
+    function findLocationByName(list, apiName) {
+      return list.find(obj => obj.LocationName === apiName);
+    }
+
+    function updateGlobalLiveStatus() {
+      if (!lastLiveTimestamp) return;
+      const diffMs = Date.now() - lastLiveTimestamp;
+      const diffSec = diffMs / 1000;
+
+      if (diffSec < 90) {
+        liveStatusDot.className = "pill-dot";
+        liveStatusText.textContent = "Live · just updated";
+      } else if (diffSec < 300) {
+        liveStatusDot.className = "pill-dot warn";
+        liveStatusText.textContent = "Live · updated a few minutes ago";
+      } else {
+        liveStatusDot.className = "pill-dot off";
+        liveStatusText.textContent = "Offline · no recent updates";
+      }
+    }
+
+    async function updateLiveSnapshot(displayName, apiName, liveJson) {
+      const locList = extractLiveList(liveJson);
+      liveAreaTitle.textContent = displayName;
+
+      if (!locList.length) {
+        liveNumber.textContent = "-- / --";
+        livePercent.textContent = "No live data received.";
+        const s = pickStatus(null);
+        liveStatusPill.textContent = s.text;
+        liveStatusPill.className = s.cls;
+        liveUpdated.textContent = "Updated: --";
+        return;
+      }
+
+      const areaObj = findLocationByName(locList, apiName);
+
+      if (!areaObj) {
+        liveNumber.textContent = "-- / --";
+        livePercent.textContent = "Area not found in live data.";
+        const s = pickStatus(null);
+        liveStatusPill.textContent = s.text;
+        liveStatusPill.className = s.cls;
+        liveUpdated.textContent = "Updated: " + new Date().toLocaleTimeString();
+      } else {
+        const count = areaObj.LastCount ?? areaObj.CountOfParticipants ?? null;
+        const cap = areaObj.TotalCapacity ?? null;
+        let pct = areaObj.PercetageCapacity ?? null;
+        if ((pct == null || pct === 0) && count != null && cap) {
+          pct = Math.round(100 * count / cap);
+        }
+
+        liveNumber.textContent = `${count ?? "--"} / ${cap ?? "--"}`;
+        livePercent.textContent = pct != null ? `${pct}% full right now` : "Current occupancy";
+
+        const s = pickStatus(pct);
+        liveStatusPill.textContent = s.text;
+        liveStatusPill.className = s.cls;
+        liveUpdated.textContent = "Updated: " + new Date().toLocaleTimeString();
+      }
+
+      lastLiveTimestamp = Date.now();
+      updateGlobalLiveStatus();
+
+      const featuredAreas = [
+        { api: "UV Strength Room", label: "Village Strength Room" },
+        { api: "UV Cardio Room", label: "Village Cardio Room" },
+        { api: "LRC Weight Room", label: "Lyon Weight Room" },
+        { api: "HSC Weight Room", label: "HSC Weight Room" }
       ];
 
-      const roomSelect = document.getElementById("room-select");
-      const todayScoreValue = document.getElementById("today-score-value");
-      const todayScoreCaption = document.getElementById("today-score-caption");
-      const todayStatusPill = document.getElementById("today-status-pill");
-      const todayStatusText = document.getElementById("today-status-text");
-      const todayChartEl = document.getElementById("today-chart");
-      const todayDateLabel = document.getElementById("today-date-label");
+      miniCards.innerHTML = "";
+      featuredAreas.forEach(info => {
+        const obj = findLocationByName(locList, info.api);
+        const card = document.createElement("div");
+        card.className = "mini-card";
 
-      const currentRoomLabel = document.getElementById("current-room-label");
-      const currentCountValue = document.getElementById("current-count-value");
-      const currentCapacityValue = document.getElementById(
-        "current-capacity-value",
-      );
-      const currentUpdatedLabel = document.getElementById(
-        "current-updated-label",
-      );
-      const miniRoomsContainer = document.getElementById("mini-rooms");
+        const header = document.createElement("div");
+        header.className = "mini-header";
 
-      const heatmapDaysEl = document.getElementById("heatmap-days");
-      const heatmapCellsEl = document.getElementById("heatmap-cells");
-      const weeklyContainer = document.getElementById("weekly-container");
-      const weeklyEmpty = document.getElementById("weekly-empty");
+        const title = document.createElement("div");
+        title.className = "mini-title";
+        title.textContent = info.label;
+        header.appendChild(title);
 
-      const highlightBusiest = document.getElementById("highlight-busiest");
-      const highlightQuietest = document.getElementById("highlight-quietest");
-      const highlightPeak = document.getElementById("highlight-peak");
-      const highlightNow = document.getElementById("highlight-now");
-      const livePillText = document.getElementById("live-pill-text");
+        const number = document.createElement("div");
+        number.className = "mini-number";
 
-      function formatTimeLabel(iso) {
-        if (!iso) return "--";
-        const d = new Date(iso);
-        return d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
-      }
+        const sub = document.createElement("div");
+        sub.className = "mini-sub";
 
-      function formatHour(h) {
-        const date = new Date();
-        date.setHours(h, 0, 0, 0);
-        return date.toLocaleTimeString([], { hour: "numeric" });
-      }
-
-      function classifyStatus(percent) {
-        if (percent == null || Number.isNaN(percent)) return "unknown";
-        if (percent < 35) return "ok";
-        if (percent < 70) return "moderate";
-        return "busy";
-      }
-
-      function setStatusPill(pill, textEl, percent) {
-        const status = classifyStatus(percent);
-        pill.classList.remove("ok", "busy");
-        if (status === "ok") {
-          pill.classList.add("ok");
-          textEl.textContent = "Usually manageable";
-        } else if (status === "busy") {
-          pill.classList.add("busy");
-          textEl.textContent = "Very busy";
+        if (!obj) {
+          number.textContent = "-- / --";
+          sub.textContent = "No live data";
         } else {
-          textEl.textContent = "Moderate";
-        }
-      }
-
-      function drawTodayChart(ctx, todaySeries, typicalSeries) {
-        const width = ctx.canvas.width;
-        const height = ctx.canvas.height;
-        ctx.clearRect(0, 0, width, height);
-
-        if (!todaySeries || todaySeries.length === 0) {
-          ctx.fillStyle = "rgba(255,255,255,0.18)";
-          ctx.fillRect(0, height / 2 - 1, width, 2);
-          return;
-        }
-
-        const maxPercent = 100;
-        const maxHour = 23;
-
-        function scaleX(hour) {
-          return (hour / maxHour) * (width - 20) + 10;
-        }
-        function scaleY(percent) {
-          const p = Math.max(0, Math.min(maxPercent, percent));
-          return height - 18 - (p / maxPercent) * (height - 28);
-        }
-
-        // Axes baseline
-        ctx.strokeStyle = "rgba(255,255,255,0.14)";
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(10, height - 18);
-        ctx.lineTo(width - 10, height - 18);
-        ctx.stroke();
-
-        if (typicalSeries && typicalSeries.length) {
-          ctx.setLineDash([4, 3]);
-          ctx.strokeStyle = "rgba(255,255,255,0.65)";
-          ctx.lineWidth = 1.2;
-          ctx.beginPath();
-          typicalSeries.forEach((pt, idx) => {
-            const x = scaleX(pt.hour);
-            const y = scaleY(pt.percent);
-            if (idx === 0) ctx.moveTo(x, y);
-            else ctx.lineTo(x, y);
-          });
-          ctx.stroke();
-          ctx.setLineDash([]);
-        }
-
-        ctx.strokeStyle = "#0a84ff";
-        ctx.lineWidth = 1.8;
-        ctx.beginPath();
-        todaySeries.forEach((pt, idx) => {
-          const x = scaleX(pt.hour);
-          const y = scaleY(pt.percent);
-          if (idx === 0) ctx.moveTo(x, y);
-          else ctx.lineTo(x, y);
-        });
-        ctx.stroke();
-      }
-
-      function buildRoomSelect() {
-        ROOM_OPTIONS.forEach((r) => {
-          const opt = document.createElement("option");
-          opt.value = r.api;
-          opt.textContent = r.label;
-          roomSelect.appendChild(opt);
-        });
-      }
-
-      async function fetchLive() {
-        const res = await fetch("/api/live");
-        if (!res.ok) throw new Error("live fetch failed");
-        return res.json();
-      }
-
-      async function fetchHistory(roomApiName) {
-        const res = await fetch(
-          `/api/history?area=${encodeURIComponent(roomApiName)}`,
-        );
-        if (!res.ok) throw new Error("history fetch failed");
-        return res.json();
-      }
-
-      function updateMiniCards(liveData) {
-        miniRoomsContainer.innerHTML = "";
-
-        // We allow either {areas: {...}} or flat object
-        const areas = liveData.areas || liveData.rooms || liveData;
-
-        ROOM_OPTIONS.forEach((opt) => {
-          const raw = areas[opt.api];
-          if (!raw) return;
-
-          const current =
-            raw.current ?? raw.count ?? raw.value ?? raw.people ?? null;
-          const capacity = raw.capacity ?? raw.max ?? null;
-          const percent =
-            raw.percent_full ??
-            raw.percent ??
-            (capacity ? (current / capacity) * 100 : null);
-
-          const card = document.createElement("div");
-          card.className = "mini-card";
-
-          const left = document.createElement("div");
-          const name = document.createElement("div");
-          name.className = "mini-name";
-          name.textContent = opt.label;
-          const sub = document.createElement("div");
-          sub.className = "mini-sub";
-          sub.textContent = capacity
-            ? "Capacity " + capacity
-            : "Live count only";
-
-          left.appendChild(name);
-          left.appendChild(sub);
-
-          const right = document.createElement("div");
-          right.style.textAlign = "right";
-          const value = document.createElement("div");
-          value.className = "mini-value";
-          value.textContent =
-            current != null && !Number.isNaN(current) ? current : "--";
-          const p = document.createElement("div");
-          p.className = "mini-percent";
-          p.textContent =
-            percent != null && !Number.isNaN(percent)
-              ? Math.round(percent) + "% full"
-              : "";
-
-          right.appendChild(value);
-          right.appendChild(p);
-
-          card.appendChild(left);
-          card.appendChild(right);
-          miniRoomsContainer.appendChild(card);
-        });
-      }
-
-      function updateCurrentRoom(liveData, roomApiName) {
-        const areas = liveData.areas || liveData.rooms || liveData;
-        const entry = areas[roomApiName];
-        const friendly = ROOM_OPTIONS.find((r) => r.api === roomApiName);
-
-        currentRoomLabel.textContent = friendly
-          ? friendly.label
-          : roomApiName;
-
-        if (!entry) {
-          currentCountValue.textContent = "--";
-          currentCapacityValue.textContent = "/ --";
-          currentUpdatedLabel.textContent = "Updated: --";
-          highlightNow.textContent = "--";
-          return;
-        }
-
-        const current =
-          entry.current ?? entry.count ?? entry.value ?? entry.people ?? null;
-        const capacity = entry.capacity ?? entry.max ?? null;
-        const percent =
-          entry.percent_full ??
-          entry.percent ??
-          (capacity ? (current / capacity) * 100 : null);
-
-        currentCountValue.textContent =
-          current != null && !Number.isNaN(current) ? current : "--";
-        currentCapacityValue.textContent = capacity ? ` / ${capacity}` : "";
-        currentUpdatedLabel.textContent = entry.read_at
-          ? "Updated: " + formatTimeLabel(entry.read_at)
-          : "Updated: just now";
-
-        if (percent != null && !Number.isNaN(percent)) {
-          highlightNow.textContent = `${Math.round(percent)}% full right now`;
-        } else {
-          highlightNow.textContent = "--";
-        }
-      }
-
-      function updateWeekly(history) {
-        // History format: { heatmap: [{dow, hour, percent}, ...], insights: {...} }
-        const heat = history.heatmap || history.weekly || [];
-        if (!heat.length) {
-          weeklyContainer.style.display = "none";
-          weeklyEmpty.style.display = "block";
-          return;
-        }
-
-        weeklyContainer.style.display = "block";
-        weeklyEmpty.style.display = "none";
-
-        const daysShort = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-        heatmapDaysEl.innerHTML = "";
-        daysShort.forEach((d) => {
-          const div = document.createElement("div");
-          div.textContent = d;
-          heatmapDaysEl.appendChild(div);
-        });
-
-        heatmapCellsEl.innerHTML = "";
-        // Build 7 x 24 grid (Mon=0 .. Sun=6)
-        const matrix = Array.from({ length: 7 }, () =>
-          Array(24).fill(null),
-        );
-        heat.forEach((pt) => {
-          const dow = pt.dow ?? pt.day ?? 0;
-          const hour = pt.hour ?? 0;
-          const percent = pt.percent ?? pt.percent_full ?? 0;
-          if (dow >= 0 && dow < 7 && hour >= 0 && hour < 24) {
-            matrix[dow][hour] = percent;
+          const c = obj.LastCount ?? obj.CountOfParticipants ?? null;
+          const cap2 = obj.TotalCapacity ?? null;
+          let pr = obj.PercetageCapacity ?? null;
+          if ((pr == null || pr === 0) && c != null && cap2) {
+            pr = Math.round(100 * c / cap2);
           }
-        });
-
-        // Flatten row-major: for each day, then hour
-        matrix.forEach((row) => {
-          row.forEach((percent) => {
-            const cell = document.createElement("div");
-            cell.className = "heat-cell";
-            if (percent != null) {
-              let level = 0;
-              if (percent >= 70) level = 3;
-              else if (percent >= 45) level = 2;
-              else if (percent >= 25) level = 1;
-              if (level > 0) cell.dataset.level = String(level);
-            }
-            heatmapCellsEl.appendChild(cell);
-          });
-        });
-
-        if (history.insights) {
-          const ins = history.insights;
-          if (ins.busiest_hour != null) {
-            highlightBusiest.textContent =
-              formatHour(ins.busiest_hour) +
-              (ins.busiest_percent != null
-                ? ` · ${Math.round(ins.busiest_percent)}%`
-                : "");
-          }
-          if (ins.quietest_hour != null) {
-            highlightQuietest.textContent =
-              formatHour(ins.quietest_hour) +
-              (ins.quietest_percent != null
-                ? ` · ${Math.round(ins.quietest_percent)}%`
-                : "");
-          }
-          if (ins.peak_percent != null) {
-            highlightPeak.textContent =
-              Math.round(ins.peak_percent) + "% typical peak";
-          }
-        }
-      }
-
-      function updateToday(history) {
-        const todaySeries =
-          history.today ??
-          history.today_series ??
-          history.points ??
-          history.series ??
-          [];
-        const typicalSeries =
-          history.typical ?? history.typical_series ?? history.baseline ?? [];
-
-        const ctx = todayChartEl.getContext("2d");
-        drawTodayChart(ctx, todaySeries, typicalSeries);
-
-        if (!todaySeries.length) {
-          todayScoreValue.textContent = "--";
-          todayScoreCaption.textContent = "Waiting for data…";
-          setStatusPill(todayStatusPill, todayStatusText, null);
-          return;
+          number.textContent = `${c ?? "--"} / ${cap2 ?? "--"}`;
+          sub.textContent = pr != null ? `${pr}% full` : "Current occupancy";
         }
 
-        const last = todaySeries[todaySeries.length - 1];
-        const currentPercent = last.percent ?? last.percent_full ?? null;
-        todayScoreValue.textContent =
-          currentPercent != null && !Number.isNaN(currentPercent)
-            ? Math.round(currentPercent)
-            : "--";
+        header.appendChild(number);
+        card.appendChild(header);
+        card.appendChild(sub);
 
-        todayScoreCaption.textContent = "Average fullness so far today.";
-        setStatusPill(todayStatusPill, todayStatusText, currentPercent);
+        miniCards.appendChild(card);
+      });
+    }
 
-        const today = new Date();
-        todayDateLabel.textContent = today.toLocaleDateString(undefined, {
-          weekday: "short",
-          month: "short",
-          day: "numeric",
-        });
-      }
+    async function refreshAll() {
+      const apiName = areaSelect.value;
+      const displayName = areaSelect.options[areaSelect.selectedIndex].textContent;
 
-      async function refresh(roomApiName) {
-        try {
-          const [live, history] = await Promise.all([
-            fetchLive(),
-            fetchHistory(roomApiName),
-          ]);
+      const [historyData, liveJson] = await Promise.all([
+        fetchHistory(apiName),
+        fetchLive()
+      ]);
 
-          livePillText.textContent = "Live · just updated";
-          updateMiniCards(live);
-          updateCurrentRoom(live, roomApiName);
-          updateToday(history);
-          updateWeekly(history);
-        } catch (e) {
-          console.error(e);
-        }
-      }
+      buildTrendChart(displayName, historyData);
+      buildHeatmap(historyData);
+      await updateLiveSnapshot(displayName, apiName, liveJson);
+    }
 
-      function init() {
-        buildRoomSelect();
-        const initialRoom = ROOM_OPTIONS[0].api;
-        roomSelect.value = initialRoom;
-        refresh(initialRoom);
+    areaSelect.addEventListener("change", refreshAll);
 
-        roomSelect.addEventListener("change", () => {
-          refresh(roomSelect.value);
-        });
+    refreshAll();
 
-        // Poll every 3 minutes for live refresh
-        setInterval(() => {
-          refresh(roomSelect.value);
-        }, 180000);
-      }
+    setInterval(async () => {
+      const apiName = areaSelect.value;
+      const displayName = areaSelect.options[areaSelect.selectedIndex].textContent;
+      const [historyData, liveJson] = await Promise.all([
+        fetchHistory(apiName),
+        fetchLive()
+      ]);
+      buildTrendChart(displayName, historyData);
+      buildHeatmap(historyData);
+      await updateLiveSnapshot(displayName, apiName, liveJson);
+    }, 60 * 1000);
 
-      document.addEventListener("DOMContentLoaded", init);
-    </script>
-  </body>
+    setInterval(updateGlobalLiveStatus, 5000);
+  </script>
+</body>
 </html>
