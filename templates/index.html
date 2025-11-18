@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>USC Gym Activity</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body>
+    <div class="background-glow"></div>
+
+    <div class="app-frame">
+      <div class="main-panel">
+        <!-- Top header -->
+        <header class="header-row">
+          <div class="header-text">
+            <p class="eyebrow">USC Rec Activity</p>
+            <h1>Gym occupancy overview</h1>
+          </div>
+          <div class="status-pill">
+            <span class="indicator"></span>
+            <span id="last-updated">Loading…</span>
+          </div>
+        </header>
+
+        <!-- Flowing metrics strip -->
+        <section class="section metrics-section">
+          <div class="metrics-primary">
+            <div class="metric-large">
+              <p class="metric-label subtle">Total on campus</p>
+              <p class="metric-value-large" id="total-count">--</p>
+            </div>
+
+            <div class="metrics-breakdown">
+              <div class="mini-metric">
+                <span class="mini-dot village"></span>
+                <div>
+                  <p class="mini-label">Village</p>
+                  <p class="mini-value" id="village-total">--</p>
+                </div>
+              </div>
+              <div class="mini-metric">
+                <span class="mini-dot lyon"></span>
+                <div>
+                  <p class="mini-label">Lyon</p>
+                  <p class="mini-value" id="lyon-total">--</p>
+                </div>
+              </div>
+              <div class="mini-metric">
+                <span class="mini-dot hsc"></span>
+                <div>
+                  <p class="mini-label">HSC</p>
+                  <p class="mini-value" id="hsc-total">--</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="metrics-secondary">
+            <div class="secondary-block">
+              <p class="metric-label subtle">Village cardio</p>
+              <p class="metric-value" id="village-cardio">--</p>
+            </div>
+            <div class="secondary-block">
+              <p class="metric-label subtle">Village strength</p>
+              <p class="metric-value" id="village-strength">--</p>
+            </div>
+            <div class="secondary-block">
+              <p class="metric-label subtle">Lyon cardio</p>
+              <p class="metric-value" id="lyon-cardio">--</p>
+            </div>
+            <div class="secondary-block">
+              <p class="metric-label subtle">Lyon strength</p>
+              <p class="metric-value" id="lyon-strength">--</p>
+            </div>
+            <div class="secondary-block">
+              <p class="metric-label subtle">HSC occupancy</p>
+              <p class="metric-value" id="hsc-cardio">--</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Today trend (full width) -->
+        <section class="section charts-section">
+          <div class="section-header">
+            <div>
+              <p class="eyebrow">Today</p>
+              <h2 class="section-title">Current day trend</h2>
+            </div>
+          </div>
+          <div class="chart-wrapper">
+            <canvas id="todayChart"></canvas>
+          </div>
+          <p class="chart-caption">
+            Total occupancy across all gyms at each logged time today.
+          </p>
+        </section>
+
+        <!-- Gyms and recent days in one flowing section -->
+        <section class="section bottom-section">
+          <div class="bottom-layout">
+            <div class="gyms-column">
+              <div class="section-header small">
+                <p class="eyebrow">Locations</p>
+                <h2 class="section-title">Live by gym</h2>
+              </div>
+
+              <div class="gyms-flow">
+                <div class="gym-block village-block">
+                  <div class="gym-header">
+                    <span class="pill village-pill"></span>
+                    <span class="gym-name">Village</span>
+                  </div>
+                  <div class="gym-metrics-row">
+                    <div class="gym-metric">
+                      <span class="gym-label">Cardio</span>
+                      <span class="gym-value" id="village-cardio-dup">--</span>
+                    </div>
+                    <div class="gym-metric">
+                      <span class="gym-label">Strength</span>
+                      <span class="gym-value" id="village-strength-dup">--</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="gym-block lyon-block">
+                  <div class="gym-header">
+                    <span class="pill lyon-pill"></span>
+                    <span class="gym-name">Lyon Center</span>
+                  </div>
+                  <div class="gym-metrics-row">
+                    <div class="gym-metric">
+                      <span class="gym-label">Cardio</span>
+                      <span class="gym-value" id="lyon-cardio-dup">--</span>
+                    </div>
+                    <div class="gym-metric">
+                      <span class="gym-label">Strength</span>
+                      <span class="gym-value" id="lyon-strength-dup">--</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="gym-block hsc-block">
+                  <div class="gym-header">
+                    <span class="pill hsc-pill"></span>
+                    <span class="gym-name">HSC Fitness</span>
+                  </div>
+                  <div class="gym-metrics-row">
+                    <div class="gym-metric">
+                      <span class="gym-label">Current</span>
+                      <span class="gym-value" id="hsc-cardio-dup">--</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="history-column">
+              <div class="section-header small">
+                <p class="eyebrow">Recent days</p>
+                <h2 class="section-title">Daily averages</h2>
+              </div>
+              <div class="chart-wrapper">
+                <canvas id="historyChart"></canvas>
+              </div>
+              <p class="chart-caption">
+                Each point is the average total occupancy from all logs that
+                day.
+              </p>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <footer class="footer-row">
+        <p>Unofficial dashboard · Data from USC RecSports API · Auto refreshed</p>
+      </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+  </body>
+</html>

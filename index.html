@@ -1,926 +1,185 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <title>USC Gym Dashboard · Village & Lyon</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style>
-    :root {
-      color-scheme: dark;
-    }
-    * {
-      box-sizing: border-box;
-    }
-    body {
-      margin: 0;
-      padding: 18px 22px 28px;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
-      background:
-        radial-gradient(circle at 0% 0%, #0f172a 0, #020617 40%, #020617 100%),
-        radial-gradient(circle at 100% 100%, #0b1120 0, #000 70%, #000 100%);
-      color: #e5e7eb;
-      min-height: 100vh;
-    }
-
-    /* Top bar */
-
-    .nav {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 16px;
-      margin-bottom: 16px;
-      padding-bottom: 10px;
-      border-bottom: 1px solid rgba(31,41,55,0.9);
-    }
-    .nav-left {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .nav-logo {
-      width: 26px;
-      height: 26px;
-      border-radius: 9px;
-      background:
-        radial-gradient(circle at 25% 0%, #38bdf8 0, transparent 55%),
-        radial-gradient(circle at 80% 100%, #0ea5e9 0, transparent 50%),
-        #020617;
-      border: 1px solid rgba(148,163,184,0.65);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow:
-        0 0 0 1px rgba(15,23,42,0.9),
-        0 14px 32px rgba(15,23,42,0.95);
-    }
-    .nav-logo-dot {
-      width: 9px;
-      height: 9px;
-      border-radius: 999px;
-      background: #38bdf8;
-      box-shadow: 0 0 12px rgba(56,189,248,0.9);
-    }
-    .nav-title-group {
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
-    }
-    h1 {
-      margin: 0;
-      font-size: 22px;
-      font-weight: 650;
-      letter-spacing: 0.01em;
-    }
-    .subtitle {
-      margin: 0;
-      color: #9ca3af;
-      font-size: 13px;
-    }
-    .nav-right {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-    .pill-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 5px 11px;
-      border-radius: 999px;
-      font-size: 11px;
-      border: 1px solid rgba(148,163,184,0.5);
-      color: #9ca3af;
-      background: rgba(15,23,42,0.85);
-      backdrop-filter: blur(12px);
-    }
-    .pill-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 999px;
-      background: #22c55e;
-      box-shadow: 0 0 10px rgba(34,197,94,0.7);
-    }
-    .pill-dot.warn {
-      background: #facc15;
-      box-shadow: 0 0 10px rgba(250,204,21,0.7);
-    }
-    .pill-dot.off {
-      background: #ef4444;
-      box-shadow: 0 0 10px rgba(239,68,68,0.7);
-    }
-    .nav-tag {
-      font-size: 11px;
-      color: #a5b4fc;
-      padding: 4px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(129,140,248,0.4);
-      background: radial-gradient(circle at 0 0, rgba(129,140,248,0.25), rgba(15,23,42,0.94));
-    }
-
-    /* Layout */
-
-    .layout-main {
-      display: grid;
-      grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
-      gap: 18px;
-      margin-bottom: 18px;
-    }
-    .layout-bottom {
-      display: grid;
-      grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
-      gap: 18px;
-    }
-    @media (max-width: 900px) {
-      body {
-        padding: 14px 14px 24px;
-      }
-      .layout-main,
-      .layout-bottom {
-        grid-template-columns: minmax(0, 1fr);
-      }
-      .nav {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-      .nav-right {
-        align-self: stretch;
-        justify-content: space-between;
-      }
-    }
-
-    /* Cards */
-
-    .card {
-      position: relative;
-      background:
-        radial-gradient(circle at 0 0, rgba(59,130,246,0.25), transparent 60%),
-        radial-gradient(circle at 100% 100%, rgba(15,23,42,0.9), #020617);
-      border-radius: 20px;
-      padding: 16px 16px 14px;
-      border: 1px solid rgba(55,65,81,0.9);
-      box-shadow:
-        0 18px 60px rgba(0,0,0,0.9),
-        0 0 0 1px rgba(15,23,42,0.9);
-      backdrop-filter: blur(18px);
-      overflow: hidden;
-    }
-    .card::before {
-      content: "";
-      position: absolute;
-      inset: -40%;
-      background:
-        radial-gradient(circle at 0 0, rgba(96,165,250,0.3), transparent 55%),
-        radial-gradient(circle at 100% 0, rgba(52,211,153,0.2), transparent 60%);
-      opacity: 0.5;
-      pointer-events: none;
-      mix-blend-mode: soft-light;
-    }
-    .card-inner {
-      position: relative;
-      z-index: 1;
-    }
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 10px;
-    }
-    .card-title {
-      font-size: 15px;
-      font-weight: 600;
-    }
-    .muted {
-      font-size: 12px;
-      color: #9ca3af;
-    }
-    .muted-xs {
-      font-size: 11px;
-      color: #9ca3af;
-    }
-
-    label {
-      font-size: 12px;
-      color: #9ca3af;
-      margin-right: 4px;
-    }
-    select {
-      background: rgba(15,23,42,0.95);
-      color: #e5e7eb;
-      border-radius: 999px;
-      border: 1px solid #334155;
-      padding: 4px 10px;
-      font-size: 12px;
-      outline: none;
-      appearance: none;
-    }
-
-    /* Busy score */
-
-    .busy-score-value {
-      font-size: 32px;
-      font-weight: 700;
-      letter-spacing: 0.02em;
-    }
-    .busy-score-label {
-      font-size: 13px;
-      color: #9ca3af;
-    }
-    .chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 10px;
-      border-radius: 999px;
-      font-size: 11px;
-      background: rgba(15,23,42,0.9);
-      border: 1px solid rgba(75,85,99,0.85);
-      color: #e5e7eb;
-    }
-    .chip-arrow {
-      font-size: 14px;
-    }
-
-    /* Live card */
-
-    .live-number {
-      font-size: 32px;
-      font-weight: 700;
-    }
-    .status-pill {
-      padding: 3px 10px;
-      border-radius: 999px;
-      font-size: 11px;
-      font-weight: 500;
-    }
-    .status-chill {
-      background: rgba(22,163,74,0.18);
-      color: #4ade80;
-    }
-    .status-medium {
-      background: rgba(234,179,8,0.18);
-      color: #fde047;
-    }
-    .status-packed {
-      background: rgba(220,38,38,0.18);
-      color: #fca5a5;
-    }
-    .status-unknown {
-      background: rgba(148,163,184,0.25);
-      color: #e5e7eb;
-    }
-    .minor-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      gap: 6px;
-      flex-wrap: wrap;
-      margin-top: 4px;
-    }
-    hr.divider {
-      border: none;
-      border-top: 1px solid rgba(55,65,81,0.9);
-      margin: 10px 0;
-    }
-
-    /* Mini cards */
-
-    .mini-cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-      gap: 10px;
-    }
-    .mini-card {
-      background:
-        radial-gradient(circle at 0 0, rgba(59,130,246,0.32), transparent 55%),
-        rgba(15,23,42,0.97);
-      border-radius: 14px;
-      padding: 8px 10px;
-      border: 1px solid rgba(55,65,81,0.9);
-      box-shadow: 0 10px 25px rgba(0,0,0,0.9);
-    }
-    .mini-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      margin-bottom: 2px;
-      gap: 4px;
-    }
-    .mini-title {
-      font-size: 12px;
-      font-weight: 500;
-    }
-    .mini-number {
-      font-size: 18px;
-      font-weight: 600;
-    }
-    .mini-sub {
-      font-size: 11px;
-      color: #9ca3af;
-    }
-
-    /* Heatmap */
-
-    .heatmap-grid {
-      display: grid;
-      grid-template-columns: 56px repeat(24, minmax(8px, 1fr));
-      gap: 2px;
-      margin-top: 6px;
-    }
-    .heatmap-cell {
-      height: 12px;
-      border-radius: 4px;
-    }
-    .heatmap-label {
-      font-size: 10px;
-      color: #9ca3af;
-      text-align: right;
-      padding-right: 4px;
-      line-height: 12px;
-    }
-    .heatmap-hour-header {
-      font-size: 8px;
-      color: #6b7280;
-      text-align: center;
-    }
-
-    /* Insights */
-
-    .insight-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      gap: 6px;
-      margin-bottom: 4px;
-      flex-wrap: wrap;
-    }
-    .insight-label {
-      font-size: 12px;
-      color: #9ca3af;
-    }
-    .insight-value {
-      font-size: 13px;
-      font-weight: 500;
-    }
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Type" content="text/css">
+  <title></title>
+  <meta name="Generator" content="Cocoa HTML Writer">
+  <meta name="CocoaVersion" content="2685.2">
+  <style type="text/css">
+    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px 'Helvetica Neue'; color: #dfe1e6; -webkit-text-stroke: #dfe1e6; background-color: #31aef6}
+    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px 'Helvetica Neue'; color: #dfe1e6; -webkit-text-stroke: #dfe1e6; background-color: #31aef6; min-height: 15.0px}
+    span.s1 {font-kerning: none}
   </style>
 </head>
 <body>
-  <header class="nav">
-    <div class="nav-left">
-      <div class="nav-logo">
-        <div class="nav-logo-dot"></div>
-      </div>
-      <div class="nav-title-group">
-        <h1>USC Gym Dashboard</h1>
-        <p class="subtitle">Village Fitness, Lyon Center, and HSC live activity and trends.</p>
-      </div>
-    </div>
-    <div class="nav-right">
-      <div class="nav-tag">USC Rec Sports · Internal tool</div>
-      <div class="pill-badge" id="liveStatusGlobal">
-        <span class="pill-dot" id="liveStatusDot"></span>
-        <span id="liveStatusText">Live · just updated</span>
-      </div>
-    </div>
-  </header>
-
-  <main>
-    <section class="layout-main">
-      <div class="card">
-        <div class="card-inner">
-          <div class="card-header">
-            <div>
-              <div class="card-title">Gym busy score</div>
-              <div class="muted">Based on current occupancy and recent patterns.</div>
-            </div>
-            <div>
-              <label for="areaSelect">Area</label>
-              <select id="areaSelect">
-                <!-- value = API name, label = friendly name -->
-                <option value="UV Cardio Landing">Village Cardio Area (Landing)</option>
-                <option value="UV Cardio Room">Village Cardio Room</option>
-                <option value="UV Strength Landing">Village Strength Area (Landing)</option>
-                <option value="UV Strength Room">Village Strength Room</option>
-                <option value="UV Group Ex 1">Village Group Studio 1</option>
-                <option value="UV Group Ex 2">Village Group Studio 2</option>
-                <option value="UV Queenax">Village Functional Training</option>
-                <option value="LRC Weight Room">Lyon Weight Room</option>
-                <option value="LRC Functional Training Room">Lyon Functional Training</option>
-                <option value="LRC Free Weights & Stretching">Lyon Free Weights & Stretch</option>
-                <option value="HSC Cardio">HSC Cardio Area</option>
-                <option value="HSC Strength Machines">HSC Strength Machines</option>
-                <option value="HSC Weight Room">HSC Weight Room</option>
-              </select>
-            </div>
-          </div>
-
-          <div style="display:flex; gap:16px; flex-wrap:wrap; align-items:flex-end; margin-bottom:10px;">
-            <div>
-              <div class="busy-score-value" id="busyScoreValue">--</div>
-              <div class="busy-score-label" id="busyScoreLabel">Waiting for data…</div>
-            </div>
-            <div id="nowVsNormalChip" class="chip" style="display:none;">
-              <span class="chip-arrow" id="nowVsNormalArrow">↑</span>
-              <span id="nowVsNormalText">Busier than usual</span>
-            </div>
-          </div>
-
-          <canvas id="trendChart" height="120"></canvas>
-          <div class="muted-xs" id="trendNotes" style="margin-top:6px;">
-            Today vs typical for the selected area.
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-inner">
-          <div class="card-header">
-            <div class="card-title" id="liveAreaTitle">Village Cardio Area (Landing)</div>
-            <span id="liveStatusPill" class="status-pill status-unknown">Unknown</span>
-          </div>
-          <div class="live-number" id="liveNumber">-- / --</div>
-          <div class="minor-row">
-            <span class="muted" id="livePercent">Current occupancy</span>
-            <span class="muted-xs" id="liveUpdated">Updated: --</span>
-          </div>
-
-          <hr class="divider" />
-
-          <div class="mini-cards" id="miniCards"></div>
-          <div class="muted-xs" style="margin-top:6px;">
-            These update every minute based on live counts.
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="layout-bottom">
-      <div class="card">
-        <div class="card-inner">
-          <div class="card-header">
-            <div>
-              <div class="card-title">Weekly heatmap</div>
-              <div class="muted">Average percent full by day and hour (recent days).</div>
-            </div>
-          </div>
-          <div class="muted-xs" style="margin-bottom:4px;">Darker = busier, for the selected area.</div>
-          <div id="heatmapContainer"></div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-inner">
-          <div class="card-header">
-            <div>
-              <div class="card-title">Insights</div>
-              <div class="muted">Based on typical patterns from your logs.</div>
-            </div>
-          </div>
-
-          <div class="insight-row">
-            <span class="insight-label">Busiest hour (typical)</span>
-            <span class="insight-value" id="insightPeakHour">--</span>
-          </div>
-          <div class="insight-row">
-            <span class="insight-label">Quietest hour (typical)</span>
-            <span class="insight-value" id="insightQuietHour">--</span>
-          </div>
-          <div class="insight-row">
-            <span class="insight-label">Typical peak load</span>
-            <span class="insight-value" id="insightPeakPercent">--</span>
-          </div>
-          <div class="insight-row">
-            <span class="insight-label">Most recent reading</span>
-            <span class="insight-value" id="insightLastReading">--</span>
-          </div>
-          <div class="muted-xs" style="margin-top:8px;">
-            Insights get more accurate as you log more days of data.
-          </div>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <script>
-    const areaSelect = document.getElementById("areaSelect");
-    const trendNotes = document.getElementById("trendNotes");
-    const ctx = document.getElementById("trendChart").getContext("2d");
-
-    const liveAreaTitle = document.getElementById("liveAreaTitle");
-    const liveStatusPill = document.getElementById("liveStatusPill");
-    const liveNumber = document.getElementById("liveNumber");
-    const livePercent = document.getElementById("livePercent");
-    const liveUpdated = document.getElementById("liveUpdated");
-    const miniCards = document.getElementById("miniCards");
-
-    const busyScoreValue = document.getElementById("busyScoreValue");
-    const busyScoreLabel = document.getElementById("busyScoreLabel");
-    const nowVsNormalChip = document.getElementById("nowVsNormalChip");
-    const nowVsNormalArrow = document.getElementById("nowVsNormalArrow");
-    const nowVsNormalText = document.getElementById("nowVsNormalText");
-
-    const heatmapContainer = document.getElementById("heatmapContainer");
-
-    const insightPeakHour = document.getElementById("insightPeakHour");
-    const insightQuietHour = document.getElementById("insightQuietHour");
-    const insightPeakPercent = document.getElementById("insightPeakPercent");
-    const insightLastReading = document.getElementById("insightLastReading");
-
-    const liveStatusDot = document.getElementById("liveStatusDot");
-    const liveStatusText = document.getElementById("liveStatusText");
-
-    let lastLiveTimestamp = null;
-
-    let trendChart = new Chart(ctx, {
-      type: "line",
-      data: {
-        labels: [],
-        datasets: [
-          {
-            label: "Today",
-            data: [],
-            borderWidth: 2,
-            tension: 0.3
-          },
-          {
-            label: "Typical",
-            data: [],
-            borderWidth: 2,
-            borderDash: [6, 4],
-            tension: 0.3
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: {
-            labels: {
-              color: "#e5e7eb",
-              font: { size: 11 }
-            }
-          }
-        },
-        scales: {
-          x: {
-            ticks: {
-              color: "#9ca3af",
-              maxRotation: 0,
-              autoSkip: true
-            },
-            grid: { color: "rgba(148,163,184,0.18)" }
-          },
-          y: {
-            min: 0,
-            max: 100,
-            ticks: {
-              color: "#9ca3af",
-              callback: v => v + "%"
-            },
-            grid: { color: "rgba(148,163,184,0.18)" }
-          }
-        }
-      }
-    });
-
-    function hourLabel(h) {
-      return new Date(0,0,0,h).toLocaleTimeString([], { hour: "numeric" });
-    }
-
-    function pickStatus(percent) {
-      if (percent == null) return { text: "Unknown", cls: "status-pill status-unknown" };
-      if (percent < 40) return { text: "Chill", cls: "status-pill status-chill" };
-      if (percent < 70) return { text: "Moderate", cls: "status-pill status-medium" };
-      return { text: "Packed", cls: "status-pill status-packed" };
-    }
-
-    async function fetchHistory(apiName) {
-      const res = await fetch(`/api/history?area=${encodeURIComponent(apiName)}`);
-      return await res.json();
-    }
-
-    async function fetchLive() {
-      const res = await fetch("/api/live");
-      return await res.json();
-    }
-
-    function buildTrendChart(displayName, historyData) {
-      const today = historyData.today_points || [];
-      const baseline = historyData.baseline_hourly || [];
-
-      const labels = Array.from({ length: 24 }, (_, h) => hourLabel(h));
-
-      const todaySeries = new Array(24).fill(null);
-      today.forEach(p => {
-        const d = new Date(p.timestamp);
-        todaySeries[d.getHours()] = p.percent;
-      });
-
-      const typicalSeries = baseline.map(item => item.avg_percent);
-
-      trendChart.data.labels = labels;
-      trendChart.data.datasets[0].data = todaySeries;
-      trendChart.data.datasets[1].data = typicalSeries;
-      trendChart.update();
-
-      trendNotes.textContent =
-        `Showing "${displayName}". Solid line is today; dotted line is the recent average for that hour.`;
-
-      const latestToday = today.length ? today[today.length - 1].percent : null;
-      const now = new Date();
-      const hour = now.getHours();
-      const baselineEntry = baseline.find(b => b.hour === hour);
-      const typicalNow = baselineEntry ? baselineEntry.avg_percent : null;
-
-      updateBusyScore(latestToday, typicalNow);
-      updateInsights(baseline, latestToday);
-    }
-
-    function updateBusyScore(latestToday, typicalNow) {
-      if (latestToday == null) {
-        busyScoreValue.textContent = "--";
-        busyScoreLabel.textContent = "Waiting for enough data for today.";
-        nowVsNormalChip.style.display = "none";
-        return;
-      }
-
-      let diff = 0;
-      if (typicalNow != null) {
-        diff = latestToday - typicalNow;
-      }
-      let rawScore = latestToday + diff * 0.4;
-      rawScore = Math.max(0, Math.min(100, rawScore));
-
-      busyScoreValue.textContent = Math.round(rawScore);
-      if (rawScore < 35) {
-        busyScoreLabel.textContent = "Pretty quiet right now.";
-      } else if (rawScore < 70) {
-        busyScoreLabel.textContent = "Moderately busy, usually manageable.";
-      } else {
-        busyScoreLabel.textContent = "Expect waits for equipment.";
-      }
-
-      if (typicalNow == null) {
-        nowVsNormalChip.style.display = "none";
-        return;
-      }
-
-      const delta = latestToday - typicalNow;
-      const absDelta = Math.abs(Math.round(delta));
-      nowVsNormalChip.style.display = "inline-flex";
-
-      if (Math.abs(delta) < 5) {
-        nowVsNormalArrow.textContent = "≈";
-        nowVsNormalText.textContent = "About as busy as usual for this time.";
-      } else if (delta > 0) {
-        nowVsNormalArrow.textContent = "↑";
-        nowVsNormalText.textContent = `${absDelta}% busier than usual than typical right now.`;
-      } else {
-        nowVsNormalArrow.textContent = "↓";
-        nowVsNormalText.textContent = `${absDelta}% quieter than usual than typical right now.`;
-      }
-    }
-
-    function buildHeatmap(historyData) {
-      const heatmap = historyData.heatmap || [];
-      heatmapContainer.innerHTML = "";
-
-      const wrapper = document.createElement("div");
-      wrapper.className = "heatmap-grid";
-
-      const hoursHeader = document.createElement("div");
-      hoursHeader.className = "heatmap-label";
-      hoursHeader.textContent = "";
-      wrapper.appendChild(hoursHeader);
-
-      for (let h = 0; h < 24; h++) {
-        const hh = document.createElement("div");
-        hh.className = "heatmap-hour-header";
-        hh.textContent = h % 2 === 0 ? h : "";
-        wrapper.appendChild(hh);
-      }
-
-      const dowLabels = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
-
-      let maxVal = 0;
-      for (const row of heatmap) {
-        for (const v of row.hours) {
-          if (v != null && v > maxVal) maxVal = v;
-        }
-      }
-      if (maxVal === 0) maxVal = 1;
-
-      heatmap.forEach(row => {
-        const label = document.createElement("div");
-        label.className = "heatmap-label";
-        label.textContent = dowLabels[row.dow] || "?";
-        wrapper.appendChild(label);
-
-        row.hours.forEach(v => {
-          const cell = document.createElement("div");
-          cell.className = "heatmap-cell";
-          if (v == null) {
-            cell.style.background = "rgba(15,23,42,0.9)";
-          } else {
-            const intensity = v / maxVal;
-            const alpha = 0.18 + 0.75 * intensity;
-            cell.style.background = `rgba(56,189,248,${alpha})`;
-          }
-          wrapper.appendChild(cell);
-        });
-      });
-
-      heatmapContainer.appendChild(wrapper);
-    }
-
-    function updateInsights(baselineHourly, latestToday) {
-      if (!baselineHourly || baselineHourly.length === 0) {
-        insightPeakHour.textContent = "--";
-        insightQuietHour.textContent = "--";
-        insightPeakPercent.textContent = "--";
-        insightLastReading.textContent = latestToday != null ? `${latestToday}%` : "--";
-        return;
-      }
-
-      let peak = null;
-      let peakHour = null;
-      let min = null;
-      let minHour = null;
-
-      baselineHourly.forEach(entry => {
-        const val = entry.avg_percent;
-        if (val == null) return;
-        if (peak == null || val > peak) {
-          peak = val;
-          peakHour = entry.hour;
-        }
-        if (min == null || val < min) {
-          min = val;
-          minHour = entry.hour;
-        }
-      });
-
-      insightPeakHour.textContent = peakHour != null ? hourLabel(peakHour) : "--";
-      insightQuietHour.textContent = minHour != null ? hourLabel(minHour) : "--";
-      insightPeakPercent.textContent = peak != null ? `${Math.round(peak)}% full at peak.` : "--";
-      insightLastReading.textContent = latestToday != null ? `${Math.round(latestToday)}% right now.` : "--";
-    }
-
-    function extractLiveList(json) {
-      if (Array.isArray(json)) return json;
-      for (const v of Object.values(json)) {
-        if (Array.isArray(v) && v.length && typeof v[0] === "object") return v;
-      }
-      return [];
-    }
-
-    function findLocationByName(list, apiName) {
-      return list.find(obj => obj.LocationName === apiName);
-    }
-
-    function updateGlobalLiveStatus() {
-      if (!lastLiveTimestamp) return;
-      const diffMs = Date.now() - lastLiveTimestamp;
-      const diffSec = diffMs / 1000;
-
-      if (diffSec < 90) {
-        liveStatusDot.className = "pill-dot";
-        liveStatusText.textContent = "Live · just updated";
-      } else if (diffSec < 300) {
-        liveStatusDot.className = "pill-dot warn";
-        liveStatusText.textContent = "Live · updated a few minutes ago";
-      } else {
-        liveStatusDot.className = "pill-dot off";
-        liveStatusText.textContent = "Offline · no recent updates";
-      }
-    }
-
-    async function updateLiveSnapshot(displayName, apiName, liveJson) {
-      const locList = extractLiveList(liveJson);
-      liveAreaTitle.textContent = displayName;
-
-      if (!locList.length) {
-        liveNumber.textContent = "-- / --";
-        livePercent.textContent = "No live data received.";
-        const s = pickStatus(null);
-        liveStatusPill.textContent = s.text;
-        liveStatusPill.className = s.cls;
-        liveUpdated.textContent = "Updated: --";
-        return;
-      }
-
-      const areaObj = findLocationByName(locList, apiName);
-
-      if (!areaObj) {
-        liveNumber.textContent = "-- / --";
-        livePercent.textContent = "Area not found in live data.";
-        const s = pickStatus(null);
-        liveStatusPill.textContent = s.text;
-        liveStatusPill.className = s.cls;
-        liveUpdated.textContent = "Updated: " + new Date().toLocaleTimeString();
-      } else {
-        const count = areaObj.LastCount ?? areaObj.CountOfParticipants ?? null;
-        const cap = areaObj.TotalCapacity ?? null;
-        let pct = areaObj.PercetageCapacity ?? null;
-        if ((pct == null || pct === 0) && count != null && cap) {
-          pct = Math.round(100 * count / cap);
-        }
-
-        liveNumber.textContent = `${count ?? "--"} / ${cap ?? "--"}`;
-        livePercent.textContent = pct != null ? `${pct}% full right now` : "Current occupancy";
-
-        const s = pickStatus(pct);
-        liveStatusPill.textContent = s.text;
-        liveStatusPill.className = s.cls;
-        liveUpdated.textContent = "Updated: " + new Date().toLocaleTimeString();
-      }
-
-      lastLiveTimestamp = Date.now();
-      updateGlobalLiveStatus();
-
-      const featuredAreas = [
-        { api: "UV Strength Room", label: "Village Strength Room" },
-        { api: "UV Cardio Room", label: "Village Cardio Room" },
-        { api: "LRC Weight Room", label: "Lyon Weight Room" },
-        { api: "HSC Weight Room", label: "HSC Weight Room" }
-      ];
-
-      miniCards.innerHTML = "";
-      featuredAreas.forEach(info => {
-        const obj = findLocationByName(locList, info.api);
-        const card = document.createElement("div");
-        card.className = "mini-card";
-
-        const header = document.createElement("div");
-        header.className = "mini-header";
-
-        const title = document.createElement("div");
-        title.className = "mini-title";
-        title.textContent = info.label;
-        header.appendChild(title);
-
-        const number = document.createElement("div");
-        number.className = "mini-number";
-
-        const sub = document.createElement("div");
-        sub.className = "mini-sub";
-
-        if (!obj) {
-          number.textContent = "-- / --";
-          sub.textContent = "No live data";
-        } else {
-          const c = obj.LastCount ?? obj.CountOfParticipants ?? null;
-          const cap2 = obj.TotalCapacity ?? null;
-          let pr = obj.PercetageCapacity ?? null;
-          if ((pr == null || pr === 0) && c != null && cap2) {
-            pr = Math.round(100 * c / cap2);
-          }
-          number.textContent = `${c ?? "--"} / ${cap2 ?? "--"}`;
-          sub.textContent = pr != null ? `${pr}% full` : "Current occupancy";
-        }
-
-        header.appendChild(number);
-        card.appendChild(header);
-        card.appendChild(sub);
-
-        miniCards.appendChild(card);
-      });
-    }
-
-    async function refreshAll() {
-      const apiName = areaSelect.value;
-      const displayName = areaSelect.options[areaSelect.selectedIndex].textContent;
-
-      const [historyData, liveJson] = await Promise.all([
-        fetchHistory(apiName),
-        fetchLive()
-      ]);
-
-      buildTrendChart(displayName, historyData);
-      buildHeatmap(historyData);
-      await updateLiveSnapshot(displayName, apiName, liveJson);
-    }
-
-    areaSelect.addEventListener("change", refreshAll);
-
-    refreshAll();
-
-    setInterval(async () => {
-      const apiName = areaSelect.value;
-      const displayName = areaSelect.options[areaSelect.selectedIndex].textContent;
-      const [historyData, liveJson] = await Promise.all([
-        fetchHistory(apiName),
-        fetchLive()
-      ]);
-      buildTrendChart(displayName, historyData);
-      buildHeatmap(historyData);
-      await updateLiveSnapshot(displayName, apiName, liveJson);
-    }, 60 * 1000);
-
-    setInterval(updateGlobalLiveStatus, 5000);
-  </script>
+<p class="p1"><span class="s1">&lt;!DOCTYPE html&gt;</span></p>
+<p class="p1"><span class="s1">&lt;html lang="en"&gt;</span></p>
+<p class="p1"><span class="s1">&lt;head&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;meta charset="UTF-8" /&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;meta name="viewport" content="width=device-width, initial-scale=1.0" /&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;title&gt;USC Gym Dashboard&lt;/title&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;!-- Apple SF Pro Font --&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;link href="https://fonts.cdnfonts.com/css/sf-pro-display" rel="stylesheet"&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;style&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>body {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>margin: 0;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>padding: 0;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>background-color: #000;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>color: #fff;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>-webkit-font-smoothing: antialiased;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>header {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>padding: 22px;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>text-align: center;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>font-size: 26px;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>font-weight: 600;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>letter-spacing: -0.5px;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>border-bottom: 1px solid #222;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>.container {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>max-width: 880px;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>margin: 0 auto;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>padding: 20px;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>.section-title {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>font-size: 20px;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>font-weight: 600;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>margin: 24px 0 12px;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>opacity: 0.85;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>.card {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>background: #111;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>border: 1px solid #222;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>border-radius: 18px;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>padding: 22px;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>margin: 14px 0;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>box-shadow: 0 0 22px rgba(255,255,255,0.04);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>.facility-name {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>font-size: 22px;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>font-weight: 600;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>margin-bottom: 8px;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>.counts {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>font-size: 32px;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>font-weight: 700;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>margin-top: 6px;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>.status {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>margin-top: 10px;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>opacity: 0.8;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>font-size: 14px;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>footer {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>padding: 24px;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>text-align: center;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>opacity: 0.5;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>font-size: 13px;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>.loading {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>text-align: center;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>margin-top: 80px;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>font-size: 18px;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>opacity: 0.7;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;/style&gt;</span></p>
+<p class="p1"><span class="s1">&lt;/head&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">&lt;body&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">&lt;header&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>USC Gym Dashboard</span></p>
+<p class="p1"><span class="s1">&lt;/header&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">&lt;div class="container"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;div class="loading" id="loading"&gt;Loading live data…&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;div id="content" style="display:none;"&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="section-title"&gt;Village Fitness Center&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="card"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div class="facility-name"&gt;Village – Strength Area&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div class="counts" id="village_strength"&gt;--&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div class="status" id="village_strength_status"&gt;&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="card"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div class="facility-name"&gt;Village – Cardio Area&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div class="counts" id="village_cardio"&gt;--&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div class="status" id="village_cardio_status"&gt;&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="section-title"&gt;Lyon Center&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="card"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div class="facility-name"&gt;Lyon – Weight Room&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div class="counts" id="lyon_weight"&gt;--&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div class="status" id="lyon_weight_status"&gt;&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="card"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div class="facility-name"&gt;Lyon – Cardio&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div class="counts" id="lyon_cardio"&gt;--&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>&lt;div class="status" id="lyon_cardio_status"&gt;&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1">&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">&lt;footer&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>Live USC Recreation Usage</span></p>
+<p class="p1"><span class="s1">&lt;/footer&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">&lt;script&gt;</span></p>
+<p class="p1"><span class="s1">async function loadData() {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>try {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const res = await fetch("/api/log");</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const data = await res.json();</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>document.getElementById("loading").style.display = "none";</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>document.getElementById("content").style.display = "block";</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>if (!data || !data.latest_counts) return;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const c = data.latest_counts;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const map = {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>village_strength: "Village Strength",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>village_cardio: "Village Cardio",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>lyon_weight: "Lyon Weight Room",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>lyon_cardio: "Lyon Cardio"</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>};</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>for (let id in map) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>document.getElementById(id).textContent = c[id] ?? "--";</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>document.getElementById(id + "_status").textContent =</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">                </span>"Updated " + data.ran_at;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>} catch (e) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>document.getElementById("loading").textContent =</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>"Failed to load data.";</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>}</span></p>
+<p class="p1"><span class="s1">}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">loadData();</span></p>
+<p class="p1"><span class="s1">&lt;/script&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">&lt;/body&gt;</span></p>
+<p class="p1"><span class="s1">&lt;/html&gt;</span></p>
 </body>
 </html>

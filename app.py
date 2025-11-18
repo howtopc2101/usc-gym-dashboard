@@ -1,171 +1,205 @@
 import os
-from datetime import datetime
+import csv
+from datetime import datetime, timezone
 
-from flask import Flask, jsonify, send_from_directory
+from flask import Flask, jsonify, render_template, request
 import requests
-import psycopg2
-from psycopg2.extras import RealDictCursor
+import pandas as pd
 
-import tracker  # your logging + DB helper module
-
-# Live USC RecSports API
-API_URL = (
+# USC live API
+USC_API_URL = (
     "https://goboardapi.azurewebsites.net/api/FacilityCount/"
     "GetCountsByAccount?AccountAPIKey=D2A34F88-54D5-472A-8325-8B3E15C1B5EE"
 )
 
-# DB URL (set in environment on Render and locally)
-DATABASE_URL = os.environ.get("DATABASE_URL")
+CSV_FILE = "usc_gym_counts.csv"
 
-app = Flask(__name__, static_folder=".", static_url_path="")
+app = Flask(__name__, template_folder="templates", static_folder="static")
 
 
-def get_db_conn():
+def ensure_csv_exists():
+    """Create CSV file with headers if it does not exist yet."""
+    if not os.path.exists(CSV_FILE):
+        with open(CSV_FILE, "w", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow(
+                [
+                    "timestamp",
+                    "village_cardio",
+                    "village_strength",
+                    "lyon_cardio",
+                    "lyon_strength",
+                    "hsc_cardio",
+                ]
+            )
+
+
+ensure_csv_exists()
+
+
+def parse_counts(api_data):
     """
-    Postgres connection helper.
-    Not required by tracker.py if it uses its own logic,
-    but here if you want it.
+    Take raw USC API JSON and reduce it to 5 numbers:
+    - village_cardio
+    - village_strength
+    - lyon_cardio
+    - lyon_strength
+    - hsc_cardio
     """
-    if not DATABASE_URL:
-        raise RuntimeError("DATABASE_URL environment variable is not set")
+    counts = {
+        "village_cardio": 0,
+        "village_strength": 0,
+        "lyon_cardio": 0,
+        "lyon_strength": 0,
+        "hsc_cardio": 0,
+    }
 
-    # sslmode=require works for Render external URLs
-    return psycopg2.connect(
-        DATABASE_URL,
-        sslmode="require",
-        cursor_factory=RealDictCursor,
-    )
+    if isinstance(api_data, list):
+        facilities = api_data
+    else:
+        facilities = [api_data]
 
+    for facility in facilities:
+        name = (facility.get("FacilityName") or "").lower()
+        location = (facility.get("LocationName") or "").lower()
+        count = facility.get("LastCount") or 0
 
-# ---------- Basic routes ----------
+        # Village / UV
+        if "village" in name or "village" in location or "uv" in name:
+            if "cardio" in location:
+                counts["village_cardio"] = count
+            elif "strength" in location or "weight" in location:
+                counts["village_strength"] = count
+            else:
+                if counts["village_cardio"] == 0:
+                    counts["village_cardio"] = count
+
+        # Lyon Center
+        elif "lyon" in name or "lyons" in name or "lyon" in location:
+            if "cardio" in location:
+                counts["lyon_cardio"] = count
+            elif "strength" in location or "weight" in location:
+                counts["lyon_strength"] = count
+            else:
+                if counts["lyon_cardio"] == 0:
+                    counts["lyon_cardio"] = count
+
+        # HSC
+        if "hsc" in name or "hsc" in location or "health sciences" in name:
+            counts["hsc_cardio"] = count
+
+    return counts
+
 
 @app.route("/")
 def index():
-    # Serve index.html from project root
-    return send_from_directory(".", "index.html")
+    return render_template("index.html")
 
-
-@app.route("/health")
-def health():
-    # Simple health check for Render and for you
-    return jsonify({"status": "ok"})
-
-
-# ---------- Live facility data (no DB) ----------
-
-@app.route("/api/live")
-def api_live():
-    """
-    Proxy the live USC RecSports API, but:
-    - simplify the fields
-    - rename locations to more normal names
-    """
-
-    try:
-        resp = requests.get(API_URL, timeout=5)
-        resp.raise_for_status()
-        data = resp.json()
-    except Exception as e:
-        return jsonify({"error": "live_fetch_failed", "detail": str(e)}), 502
-
-    def friendly_name(raw_name: str) -> str:
-        """
-        Map USC internal names to something students understand.
-        Adjust as you like.
-        """
-        name = raw_name
-
-        # Village
-        name = name.replace("UV Strength Landing", "Village Strength Area")
-        name = name.replace("UV Cardio Landing", "Village Cardio Area")
-        name = name.replace("UV Cardio Room", "Village Cardio Room")
-        name = name.replace("UV Strength Room", "Village Strength Room")
-        name = name.replace("UV Group Ex 1", "Village Group Studio 1")
-        name = name.replace("UV Group Ex 2", "Village Group Studio 2")
-        name = name.replace("UV Queenax", "Village Functional Rig")
-
-        # Lyon Center
-        name = name.replace("LRC Weight Room", "Lyon Weight Room")
-        name = name.replace("LRC Functional Training Room", "Lyon Functional Room")
-        name = name.replace("LRC Free Weights & Stretching", "Lyon Free Weights")
-        name = name.replace("LRC Robinson Room", "Lyon Robinson Room")
-        name = name.replace("LRC Main Gym Court A", "Lyon Court A")
-        name = name.replace("LRC Main Gym Court B", "Lyon Court B")
-        name = name.replace("LRC Main Gym Court C", "Lyon Court C")
-
-        # Pools / HSC
-        name = name.replace("UAC Comp Pool", "Uytengsu Competition Pool")
-        name = name.replace("UAC Dive Pool - No Divers", "Dive Pool (no divers)")
-        name = name.replace("UAC Dive Pool - Divers", "Dive Pool (with divers)")
-        name = name.replace("PED Pool", "PED Pool")
-
-        name = name.replace("HSC Cardio", "HSC Cardio")
-        name = name.replace("HSC Strength Machines", "HSC Strength Machines")
-        name = name.replace("HSC Weight Room", "HSC Weight Room")
-        name = name.replace("HSC Small Group Ex", "HSC Small Group Ex")
-        name = name.replace("HSC Large Group Ex", "HSC Large Group Ex")
-        name = name.replace("HSC Basketball Court", "HSC Basketball Court")
-
-        return name
-
-    simplified = []
-    for item in data:
-        capacity = item.get("TotalCapacity") or 0
-        count = item.get("LastCount") or 0
-        percentage = 0
-        if capacity > 0:
-            percentage = round(100 * count / capacity)
-
-        simplified.append(
-            {
-                "raw_name": item.get("LocationName"),
-                "name": friendly_name(item.get("LocationName", "")),
-                "facility": item.get("FacilityName"),
-                "count": count,
-                "capacity": capacity,
-                "percent": percentage,
-                "is_closed": bool(item.get("IsClosed")),
-                "last_updated": item.get("LastUpdatedDateAndTime"),
-            }
-        )
-
-    return jsonify({"as_of": datetime.utcnow().isoformat() + "Z", "locations": simplified})
-
-
-# ---------- Logging route used by cron-job.org ----------
 
 @app.route("/api/log", methods=["GET"])
-def api_log():
+def log_once():
     """
-    Called every 15 minutes (cron-job.org).
-    Uses tracker.log_once() to:
-    - pull live data
-    - insert a snapshot into Postgres
-    Returns a JSON summary for debugging.
+    When called (by you or cron-job.org), this:
+    - fetches the live USC counts
+    - parses them into the 5 areas
+    - appends one row to usc_gym_counts.csv
+    - returns JSON with the new row
     """
-
-    # tracker.log_once() should handle:
-    # - connecting to DB (using DATABASE_URL)
-    # - calling the live API
-    # - writing rows
     try:
-        result = tracker.log_once()
+        resp = requests.get(USC_API_URL, timeout=10)
+        resp.raise_for_status()
+        api_data = resp.json()
+
+        counts = parse_counts(api_data)
+        ts = datetime.now(timezone.utc).isoformat()
+
+        with open(CSV_FILE, "a", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow(
+                [
+                    ts,
+                    counts["village_cardio"],
+                    counts["village_strength"],
+                    counts["lyon_cardio"],
+                    counts["lyon_strength"],
+                    counts["hsc_cardio"],
+                ]
+            )
+
+        return jsonify({"status": "ok", "timestamp": ts, "counts": counts})
     except Exception as e:
-        return jsonify({"error": "log_once_failed", "detail": str(e)}), 500
+        return jsonify({"status": "error", "detail": str(e)}), 500
 
-    payload = {
-        "ran_at": datetime.utcnow().isoformat() + "Z",
-    }
 
-    if isinstance(result, dict):
-        payload.update(result)
-    else:
-        payload["result"] = str(result)
+@app.route("/api/latest", methods=["GET"])
+def latest():
+    """
+    Frontend uses this to get the most recent recorded snapshot.
+    """
+    try:
+        if not os.path.exists(CSV_FILE):
+            return jsonify({"error": "no data yet"}), 404
 
-    return jsonify(payload)
+        df = pd.read_csv(CSV_FILE)
+        if df.empty:
+            return jsonify({"error": "no data yet"}), 404
+
+        last = df.iloc[-1]
+
+        data = {
+            "timestamp": last["timestamp"],
+            "rooms": {
+                "village_cardio": int(last["village_cardio"]),
+                "village_strength": int(last["village_strength"]),
+                "lyon_cardio": int(last["lyon_cardio"]),
+                "lyon_strength": int(last["lyon_strength"]),
+                "hsc_cardio": int(last["hsc_cardio"]),
+            },
+        }
+        return jsonify(data)
+    except Exception as e:
+        return jsonify({"error": "failed to read csv", "detail": str(e)}), 500
+
+
+@app.route("/api/history", methods=["GET"])
+def history():
+    """
+    Return recent historical data points for charts.
+
+    Query params:
+      - limit: max number of rows (default 500)
+    """
+    try:
+        if not os.path.exists(CSV_FILE):
+            return jsonify({"error": "no data yet"}), 404
+
+        limit = request.args.get("limit", default=500, type=int)
+        df = pd.read_csv(CSV_FILE)
+
+        if df.empty:
+            return jsonify({"error": "no data yet"}), 404
+
+        if limit > 0 and len(df) > limit:
+            df = df.iloc[-limit:]
+
+        points = []
+        for _, row in df.iterrows():
+            points.append(
+                {
+                    "timestamp": row["timestamp"],
+                    "village_cardio": int(row["village_cardio"]),
+                    "village_strength": int(row["village_strength"]),
+                    "lyon_cardio": int(row["lyon_cardio"]),
+                    "lyon_strength": int(row["lyon_strength"]),
+                    "hsc_cardio": int(row["hsc_cardio"]),
+                }
+            )
+
+        return jsonify({"points": points})
+    except Exception as e:
+        return jsonify({"error": "failed to read history", "detail": str(e)}), 500
 
 
 if __name__ == "__main__":
-    # Local dev entrypoint. Render uses `gunicorn app:app` instead.
-    port = int(os.environ.get("PORT", 5000))
+    port = int(os.environ.get("PORT", "5050"))
     app.run(host="0.0.0.0", port=port, debug=True)
